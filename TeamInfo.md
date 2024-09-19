@@ -20,9 +20,9 @@
 |   Info      |        Description     |
 | ----------- | ---------------------- |
 |  Title      |      TBD               |
-| System URL  |      TBD               |
-| Video Link  |      TBD               |
+| System URL  |      link_to_system    |
+| Video Link  |      link_to_video     |
 
 ## Project Summary
 
-TBD
+Travel Planner helps users plan trips from point A to B, with multiple stops (S1, S2, …, SN) in between, while offering flight and accommodation options at each stop. Users can sort options by Total Price, Airbnb ratings and even filter by preferred airlines to tailor their journey.
