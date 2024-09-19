@@ -19,7 +19,7 @@
 
 |   Info      |        Description     |
 | ----------- | ---------------------- |
-|  Title      |      Trael Planner     |
+|  Title      |      Travel Planner    |
 | System URL  |      link_to_system    |
 | Video Link  |      link_to_video     |
 
