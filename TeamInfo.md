@@ -12,6 +12,8 @@
 | Member2     | ppc2@illinois.edu         |
 | Member3     | Abhishek Som              |
 | Member3     | asom2@illinois.edu        |
+| Member4     | Sirapop Umnakkittikul     |
+| Member4     | sirapop3@illinois.edu     |
 
 ## Project Information
 
