@@ -30,7 +30,7 @@ CREATE TABLE user
 (
     user_id   INT AUTO_INCREMENT,
     user_name VARCHAR(50) NOT NULL,
-    phone     NUMERIC,
+    phone     VARCHAR(15),
     email     VARCHAR(50),
     PRIMARY KEY (user_id)
 );
