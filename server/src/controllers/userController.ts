@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as UserService from '../services/userService';
+import * as PlanService from '../services/planService';
 import { User, UserSchema } from '../models/User';
 
 export async function getAll(req: Request, res: Response): Promise<void> {
@@ -32,6 +33,25 @@ export async function getById(req: Request, res: Response): Promise<void> {
     } else {
       res.status(404).json({ message: 'User not found' });
     }
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(500).json({ message: 'An unexpected error occurred' });
+  }
+}
+
+export async function getPlansById(req: Request, res: Response): Promise<void> {
+  // validate
+  try {
+    const userId = Number(req.params.id);
+    if (!userId || isNaN(userId)) {
+      res.status(400).json({ message: 'User ID is required' });
+      return;
+    }
+    const plans = await PlanService.getPlansByUserId(userId);
+    res.status(200).json({
+      message: 'Plans fetched successfully',
+      data: plans
+    });
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });

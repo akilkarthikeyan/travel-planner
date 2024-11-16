@@ -31,7 +31,7 @@ CREATE TABLE user
     user_id   INT AUTO_INCREMENT,
     user_name VARCHAR(50) NOT NULL,
     phone     VARCHAR(15),
-    email     VARCHAR(50),
+    email     VARCHAR(50) UNIQUE NOT NULL,
     PRIMARY KEY (user_id)
 );
 
@@ -82,7 +82,7 @@ CREATE TABLE plan
     plan_id          INT AUTO_INCREMENT,
     plan_name        VARCHAR(50) NOT NULL,
     plan_description VARCHAR(150),
-    user_id          INT,
+    user_id          INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
     PRIMARY KEY (plan_id)
 );
@@ -104,7 +104,7 @@ CREATE TABLE plan_flight
 (
     plan_id  INT,
     flight_id VARCHAR(50),
-    ordinal   INT,
+    ordinal   INT NOT NULL,
     FOREIGN KEY (plan_id) REFERENCES plan (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (flight_id) REFERENCES flight (flight_id),
     PRIMARY KEY (plan_id, flight_id)

@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.get('/', UserController.getAll);
 router.get('/:id', UserController.getById);
+router.get('/:id/plans', UserController.getPlansById);
 router.post('/', UserController.create);
 
 export default router;
