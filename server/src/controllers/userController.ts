@@ -11,7 +11,7 @@ export async function getAll(req: Request, res: Response): Promise<void> {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.status(500).json({message: 'An unexpected error occurred'});
+    res.status(500).json({ message: 'An unexpected error occurred' });
   }
 }
 
@@ -34,15 +34,17 @@ export async function getById(req: Request, res: Response): Promise<void> {
     }
   } catch (error: any) {
     console.log(error.message);
-    res.status(500).json({message: 'An unexpected error occurred'});
+    res.status(500).json({ message: 'An unexpected error occurred' });
   }
 }
 
 export async function create(req: Request, res: Response): Promise<void> {
   // validate
+  let user: User;
   try {
-    var user = UserSchema.parse(req.body);
-  } catch (error) {
+    user = UserSchema.parse(req.body);
+  } catch (error: any) {
+    console.log("User validation errors: ", error.errors.map((err: any) => err.message + ' at ' + err.path.join('.')));
     res.status(400).json({ message: 'Invalid user data' });
     return;
   }
@@ -54,6 +56,6 @@ export async function create(req: Request, res: Response): Promise<void> {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.status(500).json({message: 'An unexpected error occurred'});
+    res.status(500).json({ message: 'An unexpected error occurred' });
   }
 }
