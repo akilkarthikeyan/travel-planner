@@ -9,8 +9,9 @@ export async function getAll(req: Request, res: Response): Promise<void> {
       message: 'Users fetched successfully',
       data: users
     });
-  } catch (error) {
-    res.status(500);
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(500).json({message: 'An unexpected error occurred'});
   }
 }
 
@@ -31,8 +32,9 @@ export async function getById(req: Request, res: Response): Promise<void> {
     } else {
       res.status(404).json({ message: 'User not found' });
     }
-  } catch (error) {
-    res.status(500);
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(500).json({message: 'An unexpected error occurred'});
   }
 }
 
@@ -50,7 +52,8 @@ export async function create(req: Request, res: Response): Promise<void> {
       message: 'User created successfully',
       data: newUser
     });
-  } catch (error) {
-    res.status(500);
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(500).json({message: 'An unexpected error occurred'});
   }
 }
