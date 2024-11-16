@@ -36,12 +36,12 @@ export async function getPlanById(planId: number): Promise<Plan> {
         });
 
         const segments: Segment[] = [...flightSegments, ...airbnbSegments].sort((a, b) => {
-            if(a.ordinal && b.ordinal) {
+            if (a.ordinal && b.ordinal) {
                 return a.ordinal - b.ordinal;
             }
             return 0;
         });
-        
+
         plans[0].segments = segments;
         return plans[0] as Plan;
 
