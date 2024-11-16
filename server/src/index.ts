@@ -19,6 +19,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/users', userRoutes);
 // Plan routes
 app.use('/plans', planRoutes);
+// Flight routes
+// app.use('/flights', flightRoutes);
 
 // Start server
 app.listen(PORT, () => {
