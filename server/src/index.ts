@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import userRoutes from './routes/userRoutes';
 import planRoutes from './routes/planRoutes';
+import flightRoutes from './routes/flightRoutes';
+import airbnbRoutes from './routes/airbnbRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +21,10 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/users', userRoutes);
 // Plan routes
 app.use('/plans', planRoutes);
+// Flight routes
+app.use('/flights', flightRoutes);
+// Airbnb routes
+app.use('/airbnbs', airbnbRoutes);
 
 // Start server
 app.listen(PORT, () => {
