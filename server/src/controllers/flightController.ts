@@ -2,24 +2,30 @@ import { Request, Response } from 'express';
 import * as FlightService from '../services/flightService';
 import { Flight, FlightSchema } from '../models/Flight';
 
-export async function getById(req: Request, res: Response): Promise<Response> {
+export async function getById(req: Request, res: Response): Promise<void> {
   try {
     const flightId = req.params.id;
     // validate
     if (!flightId) {
-      return res.status(400).json({ message: 'Flight ID is required' });
+      res.status(400).json({ message: 'Flight ID is required' });
+      return;
     }
     const flight = await FlightService.getFlightById(flightId);
     if (flight) {
-      return res.status(200).json({
+      res.status(200).json({
         message: 'Flight fetched successfully',
         data: flight
       });
+      return;
     } else {
-      return res.status(404).json({ message: 'Flight not found' });
+      res.status(404).json({ message: 'Flight not found' });
+      return;
     }
   } catch (error: any) {
     console.log(error.message);
-    return res.status(500).json({ message: 'An unexpected error occurred' });
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
+
+// TODO: Add filter function for flights - by date, by airport, by airline, by fare, by duration

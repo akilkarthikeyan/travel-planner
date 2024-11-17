@@ -3,56 +3,65 @@ import * as UserService from '../services/userService';
 import * as PlanService from '../services/planService';
 import { User, UserSchema } from '../models/User';
 
-export async function getAll(req: Request, res: Response): Promise<Response> {
+export async function getAll(req: Request, res: Response): Promise<void> {
   try {
     const users = await UserService.getAllUsers();
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Users fetched successfully',
       data: users
     });
+    return;
   } catch (error: any) {
     console.log(error.message);
-    return res.status(500).json({ message: 'An unexpected error occurred' });
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
 
-export async function getById(req: Request, res: Response): Promise<Response> {
+export async function getById(req: Request, res: Response): Promise<void> {
   try {
     const userId = Number(req.params.id);
     // validate
     if (!userId || isNaN(userId)) {
-      return res.status(400).json({ message: 'User ID is required' });
+      res.status(400).json({ message: 'User ID is required' });
+      return;
     }
     const user = await UserService.getUserById(userId);
     if (user) {
-      return res.status(200).json({
+      res.status(200).json({
         message: 'User fetched successfully',
         data: user
       });
+      return;
     } else {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
   } catch (error: any) {
     console.log(error.message);
-    return res.status(500).json({ message: 'An unexpected error occurred' });
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
 
-export async function getPlansById(req: Request, res: Response): Promise<Response> {
+export async function getPlansById(req: Request, res: Response): Promise<void> {
   // validate
   try {
     const userId = Number(req.params.id);
     if (!userId || isNaN(userId)) {
-      return res.status(400).json({ message: 'User ID is required' });
+      res.status(400).json({ message: 'User ID is required' });
+      return;
     }
     const plans = await PlanService.getPlansByUserId(userId);
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Plans fetched successfully',
       data: plans
     });
+    return;
   } catch (error: any) {
     console.log(error.message);
-    return res.status(500).json({ message: 'An unexpected error occurred' });
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
 
@@ -72,8 +81,10 @@ export async function create(req: Request, res: Response): Promise<void> {
       message: 'User created successfully',
       data: newUser
     });
+    return;
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
