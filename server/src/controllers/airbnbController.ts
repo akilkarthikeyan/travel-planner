@@ -2,24 +2,30 @@ import { Request, Response } from 'express';
 import * as AirbnbService from '../services/airbnbService';
 import { Airbnb, AirbnbSchema } from '../models/Airbnb';
 
-export async function getById(req: Request, res: Response): Promise<Response> {
+export async function getById(req: Request, res: Response): Promise<void> {
   try {
     const airbnbId = Number(req.params.id);
     // validate
     if (!airbnbId || isNaN(airbnbId)) {
-      return res.status(400).json({ message: 'Airbnb ID is required' });
+      res.status(400).json({ message: 'Airbnb ID is required' });
+      return;
     }
     const airbnb = await AirbnbService.getAirbnbById(airbnbId);
     if (airbnb) {
-      return res.status(200).json({
+      res.status(200).json({
         message: 'Airbnb fetched successfully',
         data: airbnb
       });
+      return;
     } else {
-      return res.status(404).json({ message: 'Airbnb not found' });
+      res.status(404).json({ message: 'Airbnb not found' });
+      return;
     }
   } catch (error: any) {
     console.log(error.message);
-    return res.status(500).json({ message: 'An unexpected error occurred' });
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
+
+// TODO: Add filter function for airbnbs - by location, by price, by rating, by amenities?, by host?

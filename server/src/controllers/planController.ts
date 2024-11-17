@@ -2,24 +2,28 @@ import { Request, Response } from 'express';
 import * as PlanService from '../services/planService';
 import { Plan, PlanSchema } from '../models/Plan';
 
-export async function getById(req: Request, res: Response): Promise<Response> {
+export async function getById(req: Request, res: Response): Promise<void> {
   try {
     const planId = Number(req.params.id);
     // validate
     if (!planId || isNaN(planId)) {
-      return res.status(400).json({ message: 'Plan ID is required' });
+      res.status(400).json({ message: 'Plan ID is required' });
+      return;
     }
     const plan = await PlanService.getPlanById(planId);
     if (plan) {
-      return res.status(200).json({
+      res.status(200).json({
         message: 'Plan fetched successfully',
         data: plan
       });
+      return;
     } else {
-      return res.status(404).json({ message: 'Plan not found' });
+      res.status(404).json({ message: 'Plan not found' });
+      return;
     }
   } catch (error: any) {
     console.log(error.message);
-    return res.status(500).json({ message: 'An unexpected error occurred' });
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
