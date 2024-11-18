@@ -25,8 +25,8 @@ VALUES
 -- Insert data into airbnb table
 INSERT INTO airbnb (airbnb_id, listing_url, name, description, neighborhood_overview, picture_url, latitude, longitude, property_type, accommodates, bathrooms, bedrooms, beds, amenities, price, number_of_reviews, review_scores_rating, close_to_airport, host_id)
 VALUES
-    (1, 'http://example.com/listing1', 'Cozy Cottage', 'A small cozy cottage near the airport.', 'Quiet neighborhood.', 'http://example.com/image1', 40.712776, -74.005974, 'Cottage', 4, 1, 2, 2, '["WiFi", "Kitchen", "Free Parking"]', 120, 30, 4.5, 'LAX', 1),
-    (2, 'http://example.com/listing2', 'Modern Apartment', 'Spacious modern apartment in the city.', 'Bustling neighborhood.', 'http://example.com/image2', 34.052235, -118.243683, 'Apartment', 6, 2, 3, 3, '["WiFi", "Air Conditioning", "Pool"]', 200, 50, 4.7, 'ORD', 2);
+    (1, 'http://example.com/listing1', 'Cozy Cottage', 'A small cozy cottage near the airport.', 'Quiet neighborhood.', 'http://example.com/image1', 40.712776, -74.005974, 'Cottage', 4, 1, 2, 2, '["WiFi", "Kitchen", "Free Parking"]', 120, 30, 4.5, 'ORD', 1),
+    (2, 'http://example.com/listing2', 'Modern Apartment', 'Spacious modern apartment in the city.', 'Bustling neighborhood.', 'http://example.com/image2', 34.052235, -118.243683, 'Apartment', 6, 2, 3, 3, '["WiFi", "Air Conditioning", "Pool"]', 200, 50, 4.7, 'LAX', 2);
 
 -- Insert data into plan table
 INSERT INTO plan (plan_name, plan_description, user_id)
