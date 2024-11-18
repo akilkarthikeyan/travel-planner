@@ -10,9 +10,11 @@ export async function getAll(req: Request, res: Response): Promise<void> {
       message: 'Users fetched successfully',
       data: users
     });
+    return;
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
 
@@ -30,12 +32,15 @@ export async function getById(req: Request, res: Response): Promise<void> {
         message: 'User fetched successfully',
         data: user
       });
+      return;
     } else {
       res.status(404).json({ message: 'User not found' });
+      return;
     }
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
 
@@ -52,9 +57,11 @@ export async function getPlansById(req: Request, res: Response): Promise<void> {
       message: 'Plans fetched successfully',
       data: plans
     });
+    return;
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
 
@@ -74,8 +81,10 @@ export async function create(req: Request, res: Response): Promise<void> {
       message: 'User created successfully',
       data: newUser
     });
+    return;
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }

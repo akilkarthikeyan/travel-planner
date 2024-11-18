@@ -16,11 +16,16 @@ export async function getById(req: Request, res: Response): Promise<void> {
         message: 'Flight fetched successfully',
         data: flight
       });
+      return;
     } else {
       res.status(404).json({ message: 'Flight not found' });
+      return;
     }
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
   }
 }
+
+// TODO: Add filter function for flights - by date, by airport, by airline, by fare, by duration
