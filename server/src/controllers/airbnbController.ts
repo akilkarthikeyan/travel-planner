@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import * as AirbnbService from '../services/airbnbService';
-import { Airbnb, AirbnbSchema } from '../models/Airbnb';
+import { AirbnbFilter, AirbnbFilterSchema } from '../models/AirbnbFilter';
 
 export async function getById(req: Request, res: Response): Promise<void> {
   try {
@@ -28,4 +28,27 @@ export async function getById(req: Request, res: Response): Promise<void> {
   }
 }
 
-// TODO: Add filter function for airbnbs - by location, by price, by rating, by amenities?, by host?
+export async function getAll(req: Request, res: Response): Promise<void> {
+  // validate
+  let filter: AirbnbFilter;
+  try {
+    filter = AirbnbFilterSchema.parse(req.query);
+  } catch (error: any) {
+    console.log("Validation errors: ", error.errors.map((err: any) => err.message + ' at ' + err.path.join('.')));
+    res.status(400).json({ message: 'Invalid data' });
+    return;
+  }
+  try {
+    const airbnbs = await AirbnbService.getAllAirbnbs(filter);
+    res.status(200).json({
+      message: 'Airbnbs fetched successfully',
+      data: airbnbs
+    });
+    return;
+  }
+  catch (error: any) {
+    console.log(error.message);
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
+  }
+}

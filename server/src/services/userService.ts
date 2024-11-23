@@ -12,8 +12,9 @@ export async function getAllUsers(): Promise<User[]> {
 
 export async function getUserById(userId: number): Promise<User> {
   try {
-    const [rows]: [any, any] = await pool.query('SELECT * FROM user WHERE user_id = ?', [userId]);
-    return rows[0] as User;
+    const [rows] = await pool.query('SELECT * FROM user WHERE user_id = ?', [userId]);
+    const users = rows as User[];
+    return users[0];
   } catch (error) {
     throw error;
   }
