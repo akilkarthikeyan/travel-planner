@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import * as PlanService from '../services/planService';
 import { Plan, PlanSchema } from '../models/Plan';
 
-export async function getById(req: Request, res: Response): Promise<void> {
+export async function getDetailsById(req: Request, res: Response): Promise<void> {
   try {
     const planId = Number(req.params.id);
     // validate
@@ -10,10 +10,10 @@ export async function getById(req: Request, res: Response): Promise<void> {
       res.status(400).json({ message: 'Plan ID is required' });
       return;
     }
-    const plan = await PlanService.getPlanById(planId);
+    const plan = await PlanService.getPlanDetailsById(planId);
     if (plan) {
       res.status(200).json({
-        message: 'Plan fetched successfully',
+        message: 'Plan Details fetched successfully',
         data: plan
       });
       return;

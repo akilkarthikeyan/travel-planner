@@ -11,9 +11,8 @@ export async function getPlansByUserId(userId: number): Promise<Plan[]> {
     }
 }
 
-export async function getPlanById(planId: number): Promise<Plan> {
+export async function getPlanDetailsById(planId: number): Promise<Segment[]> {
     try {
-        const [plans]: [any, any] = await pool.query('SELECT * FROM plan WHERE plan_id = ?', [planId]);
         const [flights]: [any, any] = await pool.query('SELECT * FROM plan_flight WHERE plan_id = ?', [planId]);
         const [airbnbs]: [any, any] = await pool.query('SELECT * FROM plan_airbnb WHERE plan_id = ?', [planId]);
 
@@ -42,9 +41,7 @@ export async function getPlanById(planId: number): Promise<Plan> {
             return 0;
         });
 
-        plans[0].segments = segments;
-        return plans[0] as Plan;
-
+        return segments;
     } catch (error) {
         throw error;
     }
