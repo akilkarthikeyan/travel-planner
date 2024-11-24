@@ -50,3 +50,55 @@ export async function createPlan(req: Request, res: Response): Promise<void> {
     return;
   }
 }
+
+export async function deletePlan(req: Request, res: Response): Promise<void> {
+  try {
+    const planId = Number(req.params.id);
+    // validate
+    if (!planId || isNaN(planId)) {
+      res.status(400).json({ message: 'Plan ID is required' });
+      return;
+    }
+    await PlanService.deletePlan(planId);
+    res.status(204).json();
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
+  }
+}
+
+export async function updatePlan(req: Request, res: Response): Promise<void> {
+  let plan: Plan;
+  let planId: number;
+  // validate
+  planId = Number(req.params.id);
+  if (!planId || isNaN(planId)) {
+    res.status(400).json({ message: 'Plan ID is required' });
+    return;
+  }
+  try {
+    plan = PlanSchema.parse(req.body);
+  } catch (error: any) {
+    console.log("Plan validation errors: ", error.errors.map((err: any) => err.message + ' at ' + err.path.join('.')));
+    res.status(400).json({ message: 'Invalid plan data' });
+    return;
+  }
+  try {
+    const updatedPlan = await PlanService.updatePlan(planId, plan);
+    if (updatedPlan) {
+      res.status(200).json({
+        message: 'Plan updated successfully',
+        data: updatedPlan
+      });
+      return;
+    } else {
+      res.status(404).json({ message: 'Plan not found' });
+      return;
+    }
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(500).json({ message: 'An unexpected error occurred' });
+    return;
+  }
+}
