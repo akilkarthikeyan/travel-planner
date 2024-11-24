@@ -1,7 +1,6 @@
 import { pool } from '../db';
 import { Airbnb } from '../models/Airbnb';
 import { AirbnbFilter } from '../models/AirbnbFilter';
-import mysql from 'mysql2/promise';
 
 export async function getAirbnbById(airbnbId: number): Promise<Airbnb> {
     try {
@@ -50,8 +49,8 @@ export async function getAllAirbnbs(filter: AirbnbFilter): Promise<Airbnb[]> {
         query += ' WHERE ' + conditions.join(' AND ');
         query += ' LIMIT ? OFFSET ?';
         values.push(filter.limit);
-        values.push(filter.offset);
-        console.log(mysql.format(query, values));
+        values.push(filter.offset * filter.limit);
+
         const [rows] = await pool.query(query, values);
         const airbnbs = rows as Airbnb[];
         airbnbs.forEach((airbnb) => {

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import * as FlightService from '../services/flightService';
-import { Flight, FlightSchema } from '../models/Flight';
+import { FlightFilter, FlightFilterSchema } from '../models/FlightFilter';
 
 export async function getById(req: Request, res: Response): Promise<void> {
   try {
@@ -31,23 +31,22 @@ export async function getById(req: Request, res: Response): Promise<void> {
 // TODO: Add filter function for flights - by date, by airport, by airline, by fare, by duration
 export async function getAll(req: Request, res: Response): Promise<void> {
   // validate
-  let filter: Flight;
+  let filter: FlightFilter;
   try {
-    filter = FlightSchema.parse(req.query);
+    filter = FlightFilterSchema.parse(req.query);
   } catch (error: any) {
     console.log("Validation errors: ", error.errors.map((err: any) => err.message + ' at ' + err.path.join('.')));
-    res.status(400).json({ message: 'Invalid data' });
+    res.status(400).json({ message: 'Invalid params' });
     return;
   }
   try {
-    // const flights = await FlightService.getAllFlights(filter);
+    const flights = await FlightService.getAllFlights(filter);
     res.status(200).json({
       message: 'Flights fetched successfully',
-      // data: flights
+      data: flights
     });
     return;
-  }
-  catch (error: any) {
+  } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
     return;

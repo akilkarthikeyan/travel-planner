@@ -35,7 +35,7 @@ export async function getAll(req: Request, res: Response): Promise<void> {
     filter = AirbnbFilterSchema.parse(req.query);
   } catch (error: any) {
     console.log("Validation errors: ", error.errors.map((err: any) => err.message + ' at ' + err.path.join('.')));
-    res.status(400).json({ message: 'Invalid data' });
+    res.status(400).json({ message: 'Invalid params' });
     return;
   }
   try {
@@ -45,8 +45,7 @@ export async function getAll(req: Request, res: Response): Promise<void> {
       data: airbnbs
     });
     return;
-  }
-  catch (error: any) {
+  } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
     return;
