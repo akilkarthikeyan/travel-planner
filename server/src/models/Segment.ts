@@ -1,12 +1,5 @@
 import { z } from 'zod';
-
-const isValidDate = (dateString: string): boolean => {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(dateString)) return false;
-
-    const date = new Date(dateString);
-    return date instanceof Date && !isNaN(date.getTime()) && date.toISOString().slice(0, 10) === dateString;
-};
+import { isValidDate } from '../utils/dateUtils';
 
 export enum SegmentTypeEnum {
     AIRBNB = 'airbnb',
@@ -20,9 +13,11 @@ export const SegmentSchema = z.object({
     ordinal: z.number(),
     start_date: z.string().refine(val => isValidDate(val), {
         message: 'Start date must be a valid date in YYYY-MM-DD format',
+        path: ['start_date']
     }).optional(),
     end_date: z.string().refine(val => isValidDate(val), {
         message: 'End date must be a valid date in YYYY-MM-DD format',
+        path: ['end_date']
     }).optional(),
 }).refine(data => {
     if (data.segment_type === SegmentTypeEnum.FLIGHT) {
