@@ -1,24 +1,22 @@
 import {z} from 'zod';
-
-const timeRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
-const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+import { isValidDate, isValidTime } from '../utils/dateUtils';
 
 export const FlightFilterSchema = z.object({
     min_fare: z.coerce.number().optional(),
     max_fare: z.coerce.number().optional(),
-    date: z.string().refine(val => dateRegex.test(val), {
-        message: "Invalid date format, should be yyyy-mm-dd",
+    date: z.string().refine(val => isValidDate(val), {
+        message: "Date must be a valid date in YYYY-MM-DD format",
         path: ["date"]
     }),
     starting_airport: z.string(),
     destination_airport: z.string(),
     airline: z.string().optional(),
-    departure_time_from: z.string().optional().refine(val => val === undefined || timeRegex.test(val), {
-        message: "Invalid time format, should be hh-mm-ss",
+    departure_time_from: z.string().optional().refine(val => val === undefined || isValidTime(val), {
+        message: "Departure time from should be a valid time in HH-MM-SS format",
         path: ["departure_time_from"]
     }),
-    departure_time_to: z.string().optional().refine(val => val === undefined || timeRegex.test(val), {
-        message: "Invalid time format, should be hh-mm-ss",
+    departure_time_to: z.string().optional().refine(val => val === undefined || isValidTime(val), {
+        message: "Departure time to should be a valid time in HH-MM-SS format",
         path: ["departure_time_to"]
     }),
     duration: z.coerce.number().optional(),
