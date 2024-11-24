@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import * as PlanService from '../services/planService';
-import { Plan, PlanSchema} from '../models/Plan';
+import { Plan, PlanSchema } from '../models/Plan';
 
 export async function getById(req: Request, res: Response): Promise<void> {
   try {
@@ -85,17 +85,17 @@ export async function updatePlan(req: Request, res: Response): Promise<void> {
     return;
   }
   try {
-    const updatedPlan = await PlanService.updatePlan(planId, plan);
-    if (updatedPlan) {
-      res.status(200).json({
-        message: 'Plan updated successfully',
-        data: updatedPlan
-      });
-      return;
-    } else {
+    const existingPlan = await PlanService.getPlanByIdMini(planId);
+    if (!existingPlan) {
       res.status(404).json({ message: 'Plan not found' });
       return;
     }
+    const updatedPlan = await PlanService.updatePlan(planId, plan);
+    res.status(200).json({
+      message: 'Plan updated successfully',
+      data: updatedPlan
+    });
+    return;
   } catch (error: any) {
     console.log(error.message);
     res.status(500).json({ message: 'An unexpected error occurred' });
