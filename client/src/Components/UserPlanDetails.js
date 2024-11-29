@@ -1,22 +1,22 @@
 import React from 'react'
 import styles from '../Styles/UserPlanDetails.module.css'
 import UserBooking from './UserBooking'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 
 export default function UserPlanDetails() {
-  const [planDetails, setPlanDetails] = useState(null);
-  const [segmentsWithDetails, setSegmentsWithDetails] = useState([]);
+  const [plan, setPlan] = useState(null);
+  const [selectedSegment, setSelectedSegment] = useState([]);
   const { id } = useParams();
+  const navigate = useNavigate();
 
   // Fetch plan details when component mounts or when 'id' changes
   useEffect(() => {
     fetch(`http://localhost:3001/plans/${id}`)
       .then((response) => response.json())
       .then((data) => {
-        if (data.message === 'Plan fetched successfully') {
-          setPlanDetails(data.data); // Store fetched plan details in state
-          fetchSegmentDetails(data.data.segments); // Fetch additional details for segments
+        if (data.message === 'Plan Details fetched successfully') {
+          setPlan(data.data); // Store fetched plan details in state
         }
       })
       .catch((error) => {
@@ -24,79 +24,64 @@ export default function UserPlanDetails() {
       });
   }, [id]);
 
-  // Function to fetch additional details for each segment
-  const fetchSegmentDetails = async (segments) => {
-    console.log("hello")
-    const updatedSegments = await Promise.all(
-      segments.map(async (segment) => {
-        if (segment.segment_type === 'flight') {
-          // Fetch flight details
-          const flightResponse = await fetch(`http://localhost:3001/flights/${segment.segment_id}`);
-          let flightData = await flightResponse.json();
-          flightData = flightData.data;
-          return {
-            ...segment,
-            from: flightData.starting_airport,
-            to: flightData.destination_airport,
-          };
-        } else if (segment.segment_type === 'airbnb') {
-          // Fetch Airbnb details
-          const airbnbResponse = await fetch(`http://localhost:3001/airbnbs/${segment.segment_id}`);
-          let airbnbData = await airbnbResponse.json();
-          airbnbData = airbnbData.data;
-          return {
-            ...segment,
-            closest_to_airport: airbnbData.close_to_airport,
-          };
-        }
-        return segment; // Return unchanged if no matching type
-      })
+  // Show a loading message while waiting for the plan details
+  if (!plan) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-screen">
+        <p className="text-lg font-semibold text-gray-600">Loading...</p>
+      </div>
     );
-    console.log("updatedSegments", updatedSegments)
-    setSegmentsWithDetails(updatedSegments);
-  };
-
-  if (!planDetails || segmentsWithDetails.length === 0) {
-    return <h2>Loading...</h2>;
   }
 
   return (
-    <>
-      <h1 className={styles.PlanName}>{planDetails.plan_name}</h1>
-      <div className={styles.UserPlanDetailsContainer}>
-        <div className={styles.ColumnName}>
-          <div className={styles.ColName} style={{ width: '10%' }}>
-            <h3 style={{ fontWeight: 400, marginLeft: '10px' }}>Ordinal</h3>
-          </div>
-          <div className={styles.ColName} style={{ width: '20%' }}>
-            <h3 style={{ fontWeight: 400, marginLeft: '10px' }}>Type</h3>
-          </div>
-          <div className={styles.ColName} style={{ width: '10%' }}>
-            <h3 style={{ fontWeight: 400, marginLeft: '10px' }}>Id</h3>
-          </div>
-          <div className={styles.ColName} style={{ width: '20%' }}>
-            <h3 style={{ fontWeight: 400, marginLeft: '10px' }}>From</h3>
-          </div>
-          <div className={styles.ColName} style={{ width: '20%' }}>
-            <h3 style={{ fontWeight: 400, marginLeft: '10px' }}>To</h3>
-          </div>
-          <div className={styles.ColName} style={{ width: '20%' }}>
-            <h3 style={{ fontWeight: 400, marginLeft: '10px' }}>Closest to Airport</h3>
-          </div>
-        </div>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">{plan.plan_name}</h2>
+        <button 
+          onClick={() => navigate(`/users/${plan.user_id}/plans`)}
+          className="bg-gray-200 px-4 py-2 rounded"
+        >
+          Back to Plans
+        </button>
+      </div>
+      <p className="mb-4">{plan.plan_description}</p>
 
-        {segmentsWithDetails.map((segment, index) => (
-          <UserBooking
-            key={index}
-            ordinal={segment?.ordinal}
-            type={segment?.segment_type}
-            id={segment?.segment_id}
-            from={segment?.from || segment?.start_date} // Use fetched "from" or default start date
-            to={segment?.to || segment?.end_date}     // Use fetched "to" or default end date
-            closestToAirport={segment?.closest_to_airport || ''} // Only for Airbnb segments
-          />
+      <button 
+        onClick={()=>navigate(`/plans/${id}/segments`)}
+        // onClick={onAddSegment}
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+      >
+        Add Segment
+      </button>
+
+      <div className="space-y-4">
+        {plan.segments.map(segment => (
+          <div 
+            key={segment.segment_id} 
+            className="bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-lg"
+            onClick={() => setSelectedSegment(segment)}
+          >
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-semibold">
+                  {segment.segment_type === 'airbnb' ? `Airbnb ${segment.segment_id}` : `Flight ${segment.segment_id}`}
+                </p>
+                {segment.start_date && segment.end_date && (
+                  <p className="text-sm text-gray-600">
+                    {segment.start_date} - {segment.end_date}
+                  </p>
+                )}
+              </div>
+              <div className="flex space-x-2">
+                <button className="bg-gray-200 px-3 py-1 rounded text-sm">Edit</button>
+                <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">Remove</button>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
-    </>
+
+      {/* {renderSegmentDetails()} */}
+    </div>
   );
 }

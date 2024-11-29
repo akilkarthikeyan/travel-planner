@@ -75,20 +75,22 @@ export async function createPlan(plan: Plan, userId: number): Promise<Plan> {
 
             const [result]: [any, any] = await connection.query('INSERT INTO plan (plan_name, plan_description, user_id) VALUES (?, ?, ?)', [plan_name, plan_description, userId]);
             planId = result.insertId;
-            segments.forEach((segment, index) => {
-                segment.ordinal = index + 1;
-            });
+            if (segments) {
+                segments.forEach((segment, index) => {
+                    segment.ordinal = index + 1;
+                });
 
-            const flightSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.FLIGHT);
-            const airbnbSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.AIRBNB);
+                const flightSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.FLIGHT);
+                const airbnbSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.AIRBNB);
 
-            await Promise.all(flightSegments.map(async (segment: Segment) => {
-            await connection.query('INSERT INTO plan_flight (plan_id, flight_id, ordinal) VALUES (?, ?, ?)', [planId, segment.segment_id, segment.ordinal]);
-            }));
+                await Promise.all(flightSegments.map(async (segment: Segment) => {
+                    await connection.query('INSERT INTO plan_flight (plan_id, flight_id, ordinal) VALUES (?, ?, ?)', [planId, segment.segment_id, segment.ordinal]);
+                }));
 
-            await Promise.all(airbnbSegments.map(async (segment: Segment) => {
-            await connection.query('INSERT INTO plan_airbnb (plan_id, airbnb_id, start_date, end_date, ordinal) VALUES (?, ?, ?, ?, ?)', [planId, Number(segment.segment_id), segment.start_date, segment.end_date, segment.ordinal]);
-            }));
+                await Promise.all(airbnbSegments.map(async (segment: Segment) => {
+                    await connection.query('INSERT INTO plan_airbnb (plan_id, airbnb_id, start_date, end_date, ordinal) VALUES (?, ?, ?, ?, ?)', [planId, Number(segment.segment_id), segment.start_date, segment.end_date, segment.ordinal]);
+                }));
+            }
 
             await connection.commit();
         } catch (error) {
@@ -136,20 +138,22 @@ export async function updatePlan(planId: number, plan: Plan): Promise<Plan> {
             await connection.query('DELETE FROM plan_flight WHERE plan_id = ?', [planId]);
             await connection.query('DELETE FROM plan_airbnb WHERE plan_id = ?', [planId]);
 
-            segments.forEach((segment, index) => {
-                segment.ordinal = index + 1;
-            });
+            if (segments) {
+                segments.forEach((segment, index) => {
+                    segment.ordinal = index + 1;
+                });
 
-            const flightSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.FLIGHT);
-            const airbnbSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.AIRBNB);
+                const flightSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.FLIGHT);
+                const airbnbSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.AIRBNB);
 
-            await Promise.all(flightSegments.map(async (segment: Segment) => {
-                await connection.query('INSERT INTO plan_flight (plan_id, flight_id, ordinal) VALUES (?, ?, ?)', [planId, segment.segment_id, segment.ordinal]);
-            }));
+                await Promise.all(flightSegments.map(async (segment: Segment) => {
+                    await connection.query('INSERT INTO plan_flight (plan_id, flight_id, ordinal) VALUES (?, ?, ?)', [planId, segment.segment_id, segment.ordinal]);
+                }));
 
-            await Promise.all(airbnbSegments.map(async (segment: Segment) => {
-                await connection.query('INSERT INTO plan_airbnb (plan_id, airbnb_id, start_date, end_date, ordinal) VALUES (?, ?, ?, ?, ?)', [planId, Number(segment.segment_id), segment.start_date, segment.end_date, segment.ordinal]);
-            }));
+                await Promise.all(airbnbSegments.map(async (segment: Segment) => {
+                    await connection.query('INSERT INTO plan_airbnb (plan_id, airbnb_id, start_date, end_date, ordinal) VALUES (?, ?, ?, ?, ?)', [planId, Number(segment.segment_id), segment.start_date, segment.end_date, segment.ordinal]);
+                }));
+            }
 
             await connection.commit();
         } catch (error) {

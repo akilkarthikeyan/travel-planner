@@ -39,7 +39,7 @@ export async function createPlan(req: Request, res: Response): Promise<void> {
     return;
   }
   try {
-    const newPlan = await PlanService.createPlan(plan, 1);
+    const newPlan = await PlanService.createPlan(plan, plan.user_id);
     res.status(201).json({
       message: 'Plan created successfully',
       data: newPlan
