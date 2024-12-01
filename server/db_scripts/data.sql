@@ -34,16 +34,14 @@ VALUES
     ('Vacation to LA', 'A relaxing vacation in Los Angeles.', 1),
     ('Business Trip to Chicago', 'Attending a conference in Chicago.', 2);
 
--- Insert data into plan_airbnb table
-INSERT INTO plan_airbnb (plan_id, airbnb_id, start_date, end_date, ordinal)
-VALUES
-    (1, 1, '2024-12-01', '2024-12-03', 1), -- Plan 1: Stay at Airbnb A1 (first stay)
-    (1, 2, '2024-12-05', '2024-12-07', 3), -- Plan 1: Stay at Airbnb A2 (third stay)
-    (2, 2, '2024-12-05', '2024-12-06', 1), -- Plan 2: Stay at Airbnb A2 (first stay)
-    (2, 1, '2024-12-07', '2024-12-09', 3); -- Plan 2: Stay at Airbnb A1 (third stay)
+-- Call insert_airbnb procedure to insert the first set of data
+CALL insert_airbnb(1, 1, '2024-12-01', '2024-12-03'); -- Plan 1: Stay at Airbnb A1 (first stay)
+CALL insert_airbnb(2, 2, '2024-12-05', '2024-12-06'); -- Plan 2: Stay at Airbnb A2 (first stay)
 
--- Insert data into plan_flight table
-INSERT INTO plan_flight (plan_id, flight_id, ordinal)
-VALUES
-    (1, 'FL123', 2), -- Plan 1: Take flight F1 (second part of trip)
-    (2, 'FL456', 2); -- Plan 2: Take flight F2 (second part of trip)
+-- Call insert_flight procedure to insert flight data
+CALL insert_flight(1, 'FL123'); -- Plan 1: Take flight F1 (second part of trip)
+CALL insert_flight(2, 'FL456'); -- Plan 2: Take flight F2 (second part of trip)
+
+-- Call insert_airbnb procedure to insert the second set of data
+CALL insert_airbnb(1, 2, '2024-12-07', '2024-12-08'); -- Plan 1: Stay at Airbnb A2 (third stay)
+CALL insert_airbnb(2, 1, '2024-12-07', '2024-12-09'); -- Plan 2: Stay at Airbnb A1 (third stay)

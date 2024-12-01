@@ -1,3 +1,9 @@
+DROP PROCEDURE IF EXISTS insert_airbnb;
+DROP PROCEDURE IF EXISTS insert_flight;
+
+DROP TRIGGER IF EXISTS insert_plan_airbnb;
+DROP TRIGGER IF EXISTS insert_plan_flight;
+
 DROP TABLE IF EXISTS plan_flight;
 DROP TABLE IF EXISTS plan_airbnb;
 DROP TABLE IF EXISTS plan;
@@ -48,6 +54,7 @@ CREATE TABLE flight
     arrival_time          TIME           NOT NULL,
     equipment_description VARCHAR(50),
     airline_id            VARCHAR(2)    NOT NULL,
+    seats                 INT           DEFAULT 50,
     FOREIGN KEY (airline_id) REFERENCES airline (airline_id),
     PRIMARY KEY (flight_id)
 );
@@ -94,7 +101,7 @@ CREATE TABLE plan_airbnb
     airbnb_id  INT,
     start_date DATE,
     end_date   DATE,
-    ordinal    INT,
+    ordinal    INT DEFAULT 0,
     FOREIGN KEY (plan_id) REFERENCES plan (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (airbnb_id) REFERENCES airbnb (airbnb_id),
     PRIMARY KEY (plan_id, airbnb_id, ordinal)
@@ -104,7 +111,7 @@ CREATE TABLE plan_flight
 (
     plan_id  INT,
     flight_id VARCHAR(50),
-    ordinal   INT NOT NULL,
+    ordinal   INT NOT NULL DEFAULT 0,
     FOREIGN KEY (plan_id) REFERENCES plan (plan_id) ON DELETE CASCADE,
     FOREIGN KEY (flight_id) REFERENCES flight (flight_id),
     PRIMARY KEY (plan_id, flight_id)
@@ -114,3 +121,96 @@ CREATE INDEX airbnb_combined_idx ON airbnb(close_to_airport, host_id);
 
 CREATE INDEX flight_combined_idx ON flight(starting_airport, destination_airport, flight_date);
 
+CREATE PROCEDURE insert_airbnb(
+    IN p_plan_id INT,
+    IN p_airbnb_id INT,
+    IN p_start_date DATE,
+    IN p_end_date DATE
+)
+BEGIN
+    DECLARE overlap_exists BOOLEAN;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Transaction failed due to an error';
+        END;
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    START TRANSACTION;
+    SELECT EXISTS (
+        SELECT * FROM plan_airbnb
+        WHERE airbnb_id = p_airbnb_id
+          AND (
+            (p_start_date BETWEEN start_date AND end_date)
+                OR (p_end_date BETWEEN start_date AND end_date)
+                OR (start_date BETWEEN p_start_date AND p_end_date)
+                OR (end_date BETWEEN p_start_date AND p_end_date)
+            )
+    ) INTO overlap_exists;
+    IF overlap_exists THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'airbnb overlap';
+    ELSE
+        INSERT INTO plan_airbnb(plan_id, airbnb_id, start_date, end_date)
+        VALUES(p_plan_id, p_airbnb_id, p_start_date, p_end_date);
+    END IF;
+    COMMIT;
+END;
+
+CREATE PROCEDURE insert_flight(
+    IN p_plan_id INT,
+    IN p_flight_id VARCHAR(50)
+)
+BEGIN
+    DECLARE curr_availability INT;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Transaction failed due to an error';
+        END;
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    START TRANSACTION;
+    SELECT seats INTO curr_availability
+    FROM flight
+    WHERE flight_id = p_flight_id;
+    IF curr_availability = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'no flight seats';
+    ELSE
+        UPDATE flight
+        SET seats = seats - 1
+        WHERE flight_id = p_flight_id;
+        INSERT INTO plan_flight(plan_id, flight_id)
+        VALUES (p_plan_id, p_flight_id);
+    END IF;
+    COMMIT;
+END;
+
+CREATE TRIGGER insert_plan_airbnb
+    BEFORE INSERT
+    ON plan_airbnb
+    FOR EACH ROW
+BEGIN
+    DECLARE max_ordinal INT;
+    SELECT COALESCE(MAX(ordinal), 0)
+    FROM (
+             SELECT ordinal FROM plan_airbnb WHERE plan_id = NEW.plan_id
+             UNION
+             SELECT ordinal FROM plan_flight WHERE plan_id = NEW.plan_id
+         ) combined INTO max_ordinal;
+    SET NEW.ordinal = max_ordinal + 1;
+END;
+
+CREATE TRIGGER insert_plan_flight
+    BEFORE INSERT
+    ON plan_flight
+    FOR EACH ROW
+BEGIN
+    DECLARE max_ordinal INT;
+    SELECT COALESCE(MAX(ordinal), 0)
+    FROM (
+             SELECT ordinal FROM plan_airbnb WHERE plan_id = NEW.plan_id
+             UNION
+             SELECT ordinal FROM plan_flight WHERE plan_id = NEW.plan_id
+         ) combined INTO max_ordinal;
+    SET NEW.ordinal = max_ordinal + 1;
+END;
