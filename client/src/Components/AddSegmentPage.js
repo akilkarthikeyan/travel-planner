@@ -225,6 +225,7 @@ export default function AddSegmentPage() {
                     onChange={handleFilterChange}
                     defaultValue=""
                   >
+                    <option value="" disabled hidden>Select From</option>
                     <option value="CLT">CLT</option>
                     <option value="DEN">DEN</option>
                     <option value="DFW">DFW</option>
@@ -246,6 +247,7 @@ export default function AddSegmentPage() {
                     onChange={handleFilterChange}
                     defaultValue=""
                   >
+                    <option value="" disabled hidden>Select To</option>
                     <option value="CLT">CLT</option>
                     <option value="DEN">DEN</option>
                     <option value="DFW">DFW</option>
@@ -277,14 +279,14 @@ export default function AddSegmentPage() {
           <div className="flex justify-between items-center mb-2">
               <button
                 onClick={() => handlePageChange('prev')}
-                disabled={filters.offset <= 0}
+                disabled={items.length == 0 || filters.offset <= 0}
                 className="bg-blue-500 px-4 py-2 rounded text-white disabled:bg-gray-300"
               >
                 Previous
               </button>
             </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-            {items.map((item) => (
+            {activeTab=='airbnb'? (items.map((item) => (
               <div key={item.airbnb_id} className="bg-gray-100 p-4 rounded">
                 <h3 className="font-semibold text-xl mb-2">
                   <a href={item.listing_url} target="_blank" rel="noopener noreferrer">
@@ -336,14 +338,56 @@ export default function AddSegmentPage() {
                   Add to Plan
                 </button>
               </div>
-            ))}
+            ))):(items.map((flight) => (
+              <div key={flight.flight_id} className="bg-gray-100 p-4 rounded">
+                {/* Flight details */}
+                <h3 className="font-semibold text-xl mb-2">
+                  {flight.starting_airport} to {flight.destination_airport}
+                </h3>
+        
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="flex justify-between">
+                    <strong>Departure:</strong>
+                    <span>{flight.departure_time}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <strong>Arrival:</strong>
+                    <span>{flight.arrival_time}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <strong>Duration:</strong>
+                    <span>{flight.travel_duration} min</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <strong>Total Fare:</strong>
+                    <span>${flight.total_fare}</span>
+                  </div>
+                </div>
+        
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex justify-between">
+                    <strong>Airline:</strong>
+                    <span>{flight.airline_id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <strong>Equipment:</strong>
+                    <span>{flight.equipment_description}</span>
+                  </div>
+                </div>
+        
+                {/* Add to plan button */}
+                <button className="bg-green-500 text-white py-2 px-4 rounded mt-2">
+                  Add to Plan
+                </button>
+              </div>
+            )))}
           </div>
             {/* Pagination */}
             <div className="flex justify-between items-center mt-4">
               <button
                 onClick={() => handlePageChange('next')}
-                // disabled={filters.offset + filters.limit >= totalItems}
-                className="bg-blue-500 px-4 py-2 rounded text-white"
+                disabled={items.length == 0}
+                className="bg-blue-500 px-4 py-2 rounded text-white disabled:bg-gray-300"
               >
                 Next
               </button>
