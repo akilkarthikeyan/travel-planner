@@ -4,6 +4,6 @@ import * as FlightController from '../controllers/flightController';
 const router = express.Router();
 
 router.get('/:id', FlightController.getById);
-router.get('/', FlightController.getAll);
+router.post('/', FlightController.getAll);
 
 export default router;

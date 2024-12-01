@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+enum PriceOrder {
+    ASC = "asc",
+    DESC = "desc"
+}
+
 export const AirbnbFilterSchema = z.object({
     min_price: z.coerce.number().optional(), // Automatically casts string to number
     max_price: z.coerce.number().optional(),
@@ -14,6 +19,7 @@ export const AirbnbFilterSchema = z.object({
         if (val === "false") return false;
         return undefined; // If the value is missing or invalid
     }),
+    price_order: z.nativeEnum(PriceOrder).optional(),
     offset: z.coerce.number(), // Ensures offset is a number (coerced from string)
     limit: z.coerce.number().max(100), // Coerces and ensures max is 100
 }).refine(data => data.min_price === undefined || data.max_price === undefined || data.min_price <= data.max_price, {

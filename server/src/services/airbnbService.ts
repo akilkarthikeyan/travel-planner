@@ -32,12 +32,12 @@ export async function getAllAirbnbs(filter: AirbnbFilter): Promise<Airbnb[]> {
         }
 
         if (filter.accomodates !== undefined) {
-            conditions.push('a.accomodates >= ?');
+            conditions.push('a.accommodates >= ?');
             values.push(filter.accomodates);
         }
 
         if (filter.rating !== undefined) {
-            conditions.push('a.rating >= ?');
+            conditions.push('a.review_scores_rating >= ?');
             values.push(filter.rating);
         }
 
@@ -47,6 +47,11 @@ export async function getAllAirbnbs(filter: AirbnbFilter): Promise<Airbnb[]> {
         }
 
         query += ' WHERE ' + conditions.join(' AND ');
+
+        if (filter.price_order !== undefined) {
+            query += ' ORDER BY a.price ' + filter.price_order 
+        }
+
         query += ' LIMIT ? OFFSET ?';
         values.push(filter.limit);
         values.push(filter.offset * filter.limit);

@@ -4,6 +4,7 @@ import UserBooking from './UserBooking'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 
+
 export default function UserPlanDetails() {
   const [plan, setPlan] = useState(null);
   const [selectedSegment, setSelectedSegment] = useState([]);
@@ -12,9 +13,11 @@ export default function UserPlanDetails() {
 
   // Fetch plan details when component mounts or when 'id' changes
   useEffect(() => {
+    console.log("idhar ayya: ",id)
     fetch(`http://localhost:3001/plans/${id}`)
       .then((response) => response.json())
       .then((data) => {
+        console.log("data",data)
         if (data.message === 'Plan Details fetched successfully') {
           setPlan(data.data); // Store fetched plan details in state
         }

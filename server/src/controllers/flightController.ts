@@ -33,7 +33,7 @@ export async function getAll(req: Request, res: Response): Promise<void> {
   // validate
   let filter: FlightFilter;
   try {
-    filter = FlightFilterSchema.parse(req.query);
+    filter = FlightFilterSchema.parse(req.body);
   } catch (error: any) {
     console.log("Validation errors: ", error.errors.map((err: any) => err.message + ' at ' + err.path.join('.')));
     res.status(400).json({ message: 'Invalid params' });

@@ -59,6 +59,11 @@ export async function getAllFlights(filter: FlightFilter): Promise<Flight[]> {
         }   
 
         query += ' WHERE ' + conditions.join(' AND ');
+
+        if (filter.price_order !== undefined) {
+            query += ' ORDER BY f.total_fare ' + filter.price_order 
+        }
+
         query += ' LIMIT ? OFFSET ?';
         values.push(filter.limit);
         values.push(filter.offset * filter.limit);

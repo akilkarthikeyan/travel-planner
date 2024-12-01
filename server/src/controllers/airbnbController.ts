@@ -32,7 +32,7 @@ export async function getAll(req: Request, res: Response): Promise<void> {
   // validate
   let filter: AirbnbFilter;
   try {
-    filter = AirbnbFilterSchema.parse(req.query);
+    filter = AirbnbFilterSchema.parse(req.body);
   } catch (error: any) {
     console.log("Validation errors: ", error.errors.map((err: any) => err.message + ' at ' + err.path.join('.')));
     res.status(400).json({ message: 'Invalid params' });

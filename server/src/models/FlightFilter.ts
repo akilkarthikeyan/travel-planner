@@ -1,6 +1,11 @@
 import {z} from 'zod';
 import { isValidDate, isValidTime } from '../utils/dateUtils';
 
+enum PriceOrder {
+    ASC = "asc",
+    DESC = "desc"
+}
+
 export const FlightFilterSchema = z.object({
     min_fare: z.coerce.number().optional(),
     max_fare: z.coerce.number().optional(),
@@ -28,6 +33,7 @@ export const FlightFilterSchema = z.object({
         if (val === "false") return false;
         return undefined; // If the value is missing or invalid
     }),
+    price_order: z.nativeEnum(PriceOrder).optional(),
     offset: z.coerce.number(), // Ensures offset is a number (coerced from string)
     limit: z.coerce.number().max(100), // Coerces and ensures max is 100
 }).refine(data => data.min_fare === undefined || data.max_fare === undefined || data.min_fare <= data.max_fare, {
