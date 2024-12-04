@@ -1,6 +1,7 @@
 import { pool } from '../db';
 import { Plan } from '../models/Plan';
 import { Segment, SegmentTypeEnum } from '../models/Segment';
+import mysql from 'mysql2/promise';
 
 export async function getPlansByUserId(userId: number): Promise<Plan[]> {
     try {
@@ -69,36 +70,8 @@ export async function createPlan(plan: Plan, userId: number): Promise<Plan> {
     let planId: number;
     try {
         const { plan_name, plan_description, segments } = plan;
-        const connection = await pool.getConnection();
-        try {
-            await connection.beginTransaction();
-
-            const [result]: [any, any] = await connection.query('INSERT INTO plan (plan_name, plan_description, user_id) VALUES (?, ?, ?)', [plan_name, plan_description, userId]);
-            planId = result.insertId;
-            if (segments) {
-                segments.forEach((segment, index) => {
-                    segment.ordinal = index + 1;
-                });
-
-                const flightSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.FLIGHT);
-                const airbnbSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.AIRBNB);
-
-                await Promise.all(flightSegments.map(async (segment: Segment) => {
-                    await connection.query('INSERT INTO plan_flight (plan_id, flight_id, ordinal) VALUES (?, ?, ?)', [planId, segment.segment_id, segment.ordinal]);
-                }));
-
-                await Promise.all(airbnbSegments.map(async (segment: Segment) => {
-                    await connection.query('INSERT INTO plan_airbnb (plan_id, airbnb_id, start_date, end_date, ordinal) VALUES (?, ?, ?, ?, ?)', [planId, Number(segment.segment_id), segment.start_date, segment.end_date, segment.ordinal]);
-                }));
-            }
-
-            await connection.commit();
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        } finally {
-            connection.release();
-        }
+        const [result]: [any, any] = await pool.query('INSERT INTO plan (plan_name, plan_description, user_id) VALUES (?, ?, ?)', [plan_name, plan_description, userId]);
+        planId = result.insertId;
     } catch (error) {
         throw error;
     }
@@ -107,21 +80,9 @@ export async function createPlan(plan: Plan, userId: number): Promise<Plan> {
 
 export async function deletePlan(planId: number): Promise<void> {
     try {
-        const connection = await pool.getConnection();
-        try {
-            await connection.beginTransaction();
-
-            await connection.query('DELETE FROM plan_flight WHERE plan_id = ?', [planId]);
-            await connection.query('DELETE FROM plan_airbnb WHERE plan_id = ?', [planId]);
-            await connection.query('DELETE FROM plan WHERE plan_id = ?', [planId]);
-            
-            await connection.commit();
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        } finally {
-            connection.release();
-        }
+        await pool.query('DELETE FROM plan_flight WHERE plan_id = ?', [planId]);
+        await pool.query('DELETE FROM plan_airbnb WHERE plan_id = ?', [planId]);
+        await pool.query('DELETE FROM plan WHERE plan_id = ?', [planId]);
     } catch (error) {
         throw error;
     }
@@ -129,42 +90,39 @@ export async function deletePlan(planId: number): Promise<void> {
 
 export async function updatePlan(planId: number, plan: Plan): Promise<Plan> {
     try{
-        const { plan_name, plan_description, segments } = plan;
-        const connection = await pool.getConnection();
-        try {
-            await connection.beginTransaction();
-
-            await connection.query('UPDATE plan SET plan_name = ?, plan_description = ? WHERE plan_id = ?', [plan_name, plan_description, planId]);
-            await connection.query('DELETE FROM plan_flight WHERE plan_id = ?', [planId]);
-            await connection.query('DELETE FROM plan_airbnb WHERE plan_id = ?', [planId]);
-
-            if (segments) {
-                segments.forEach((segment, index) => {
-                    segment.ordinal = index + 1;
-                });
-
-                const flightSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.FLIGHT);
-                const airbnbSegments = segments.filter(segment => segment.segment_type === SegmentTypeEnum.AIRBNB);
-
-                await Promise.all(flightSegments.map(async (segment: Segment) => {
-                    await connection.query('INSERT INTO plan_flight (plan_id, flight_id, ordinal) VALUES (?, ?, ?)', [planId, segment.segment_id, segment.ordinal]);
-                }));
-
-                await Promise.all(airbnbSegments.map(async (segment: Segment) => {
-                    await connection.query('INSERT INTO plan_airbnb (plan_id, airbnb_id, start_date, end_date, ordinal) VALUES (?, ?, ?, ?, ?)', [planId, Number(segment.segment_id), segment.start_date, segment.end_date, segment.ordinal]);
-                }));
-            }
-
-            await connection.commit();
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        } finally {
-            connection.release();
-        }
+        const { plan_name, plan_description } = plan;
+        await pool.query('UPDATE plan SET plan_name = ?, plan_description = ? WHERE plan_id = ?', [plan_name, plan_description, planId]);
     }
     catch (error) {
         throw error;
     }
     return {plan_id: planId, ...plan};
+}
+
+export async function addSegment(planId: number, segment: Segment): Promise<void> {
+    try {
+        const { segment_type, segment_id, start_date, end_date } = segment;
+        let temp = null;
+        if (segment_type === SegmentTypeEnum.FLIGHT) {
+            temp = await pool.query('CALL insert_flight(?, ?)', [planId, segment_id]);
+        } else {
+            temp = await pool.query('CALL insert_airbnb(?, ?, ?, ?)', [planId, Number(segment_id), start_date, end_date]);
+        }
+        // console.log(temp);
+    }
+    catch (error) {
+        throw error;
+    }
+}
+
+export async function deleteSegment(planId: number, segmentId: string): Promise<void> {
+    try {
+        const [rows1] = await pool.query('DELETE from plan_flight WHERE plan_id = ? AND flight_id = ?', [planId, segmentId]);
+        if(!isNaN(Number(segmentId))) {
+            const [rows2] = await pool.query('DELETE from plan_airbnb WHERE plan_id = ? AND airbnb_id = ?', [planId, Number(segmentId)]);
+        }
+    }
+    catch (error) {
+        throw error;
+    }
 }

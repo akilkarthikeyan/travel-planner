@@ -10,7 +10,7 @@ export const SegmentSchema = z.object({
     plan_id: z.number().optional(),
     segment_type: z.nativeEnum(SegmentTypeEnum),
     segment_id: z.string(),
-    ordinal: z.number(),
+    ordinal: z.number().optional(),
     start_date: z.string().refine(val => isValidDate(val), {
         message: 'Start date must be a valid date in YYYY-MM-DD format',
         path: ['start_date']

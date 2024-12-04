@@ -1,3 +1,6 @@
+DROP PROCEDURE IF EXISTS check_flight_validity;
+DROP PROCEDURE IF EXISTS check_airbnb_validity;
+
 DROP PROCEDURE IF EXISTS insert_airbnb;
 DROP PROCEDURE IF EXISTS insert_flight;
 
@@ -54,7 +57,6 @@ CREATE TABLE flight
     arrival_time          TIME           NOT NULL,
     equipment_description VARCHAR(50),
     airline_id            VARCHAR(2)    NOT NULL,
-    seats                 INT           DEFAULT 50,
     FOREIGN KEY (airline_id) REFERENCES airline (airline_id),
     PRIMARY KEY (flight_id)
 );
@@ -121,6 +123,67 @@ CREATE INDEX airbnb_combined_idx ON airbnb(close_to_airport, host_id);
 
 CREATE INDEX flight_combined_idx ON flight(starting_airport, destination_airport, flight_date);
 
+CREATE PROCEDURE check_flight_validity(
+    IN p_plan_id INT,
+    IN p_flight_id VARCHAR(50),
+    OUT is_valid BOOL
+)
+BEGIN
+    DECLARE p_flight_date DATE;
+    DECLARE max_date DATE;
+    DECLARE is_time_invalid BOOL;
+
+    SELECT f.flight_date FROM flight f where f.flight_id = p_flight_id INTO p_flight_date;
+
+    # Advanced query 1
+    SELECT COALESCE(MAX(temp.d), '0000-01-01') FROM (SELECT pa.end_date as d FROM plan_airbnb pa WHERE pa.plan_id = p_plan_id
+                                                     UNION
+                                                     SELECT f.flight_date as d FROM plan_flight pf JOIN flight f ON pf.flight_id = f.flight_id
+                                                     WHERE pf.plan_id = p_plan_id) temp INTO max_date;
+
+    # Advanced query 2
+    SELECT EXISTS(SELECT f.departure_time
+                  FROM flight f
+                  WHERE f.flight_id = p_flight_id
+                    AND f.departure_time < (SELECT COALESCE(MAX(f.arrival_time), '00:00:00')
+                                            FROM plan_flight pf
+                                                     JOIN flight f ON pf.flight_id = f.flight_id
+                                            WHERE pf.plan_id = p_plan_id
+                                              AND f.flight_date = p_flight_date)) INTO is_time_invalid;
+
+    IF is_time_invalid = TRUE OR p_flight_date < max_date THEN
+        SET is_valid = FALSE;
+    ELSE
+        SET is_valid = TRUE;
+    END IF;
+END;
+
+CREATE PROCEDURE check_airbnb_validity(
+    IN p_plan_id INT,
+    IN p_start_date DATE,
+    OUT is_valid BOOL
+)
+BEGIN
+    DECLARE max_date DATE;
+    # Advanced query 1
+    SELECT COALESCE(MAX(temp.d), '0000-01-01')
+    FROM (SELECT pa.end_date as d
+          FROM plan_airbnb pa
+          WHERE pa.plan_id = p_plan_id
+          UNION
+          SELECT f.flight_date as d
+          FROM plan_flight pf
+                   JOIN flight f ON pf.flight_id = f.flight_id
+          WHERE pf.plan_id = p_plan_id) temp
+    INTO max_date;
+
+    IF p_start_date < max_date THEN
+        SET is_valid = FALSE;
+    ELSE
+        SET is_valid = TRUE;
+    END IF;
+END;
+
 CREATE PROCEDURE insert_airbnb(
     IN p_plan_id INT,
     IN p_airbnb_id INT,
@@ -128,12 +191,16 @@ CREATE PROCEDURE insert_airbnb(
     IN p_end_date DATE
 )
 BEGIN
-    DECLARE overlap_exists BOOLEAN;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Transaction failed due to an error';
-        END;
+    DECLARE overlap_exists BOOL;
+    DECLARE is_date_valid BOOL;
+
+    CALL check_airbnb_validity(p_plan_id, p_start_date, is_date_valid);
+
+    IF is_date_valid = FALSE THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'airbnb date invalid';
+    END IF;
+
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
     START TRANSACTION;
     SELECT EXISTS (
@@ -147,6 +214,7 @@ BEGIN
             )
     ) INTO overlap_exists;
     IF overlap_exists THEN
+        ROLLBACK;
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'airbnb overlap';
     ELSE
@@ -161,24 +229,26 @@ CREATE PROCEDURE insert_flight(
     IN p_flight_id VARCHAR(50)
 )
 BEGIN
-    DECLARE curr_availability INT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Transaction failed due to an error';
-        END;
+    DECLARE curr_bookings INT;
+    DECLARE are_date_time_valid BOOL;
+
+    CALL check_flight_validity(p_plan_id, p_flight_id, are_date_time_valid);
+
+    IF are_date_time_valid = FALSE THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'flight date or time invalid';
+    END IF;
+
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
     START TRANSACTION;
-    SELECT seats INTO curr_availability
-    FROM flight
-    WHERE flight_id = p_flight_id;
-    IF curr_availability = 0 THEN
+
+    SELECT count(*) FROM plan_flight WHERE flight_id = p_flight_id INTO curr_bookings;
+
+    IF curr_bookings = 50 THEN
+        ROLLBACK;
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'no flight seats';
     ELSE
-        UPDATE flight
-        SET seats = seats - 1
-        WHERE flight_id = p_flight_id;
         INSERT INTO plan_flight(plan_id, flight_id)
         VALUES (p_plan_id, p_flight_id);
     END IF;

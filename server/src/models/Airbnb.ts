@@ -20,6 +20,12 @@ export const AirbnbSchema = z.object({
     review_scores_rating: z.number(),
     close_to_airport: z.string(),
     host_id: z.number(),
+    host_name: z.string(),
+    host_url: z.string(),
+    host_response_rate: z.number(),
+    host_acceptance_rate: z.number(),
+    host_is_superhost: z.boolean(),
+    host_identity_verified: z.boolean(),
 });
 
 export type Airbnb = z.infer<typeof AirbnbSchema>;

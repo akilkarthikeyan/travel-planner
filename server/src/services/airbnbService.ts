@@ -4,7 +4,7 @@ import { AirbnbFilter } from '../models/AirbnbFilter';
 
 export async function getAirbnbById(airbnbId: number): Promise<Airbnb> {
     try {
-        const [rows] = await pool.query('SELECT * FROM airbnb WHERE airbnb_id = ?', [airbnbId]);
+        const [rows] = await pool.query('SELECT * FROM airbnb a NATURAL JOIN host h WHERE airbnb_id = ?', [airbnbId]);
         const airbnbs = rows as Airbnb[];
         return airbnbs[0] || null;
     } catch (error) {

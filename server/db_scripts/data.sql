@@ -35,8 +35,8 @@ VALUES
     ('Business Trip to Chicago', 'Attending a conference in Chicago.', 2);
 
 -- Call insert_airbnb procedure to insert the first set of data
-CALL insert_airbnb(1, 1, '2024-12-01', '2024-12-03'); -- Plan 1: Stay at Airbnb A1 (first stay)
-CALL insert_airbnb(2, 2, '2024-12-05', '2024-12-06'); -- Plan 2: Stay at Airbnb A2 (first stay)
+CALL insert_airbnb(1, 1, '2024-11-29', '2024-11-30'); -- Plan 1: Stay at Airbnb A1 (first stay)
+CALL insert_airbnb(2, 2, '2024-12-01', '2024-12-03'); -- Plan 2: Stay at Airbnb A2 (first stay)
 
 -- Call insert_flight procedure to insert flight data
 CALL insert_flight(1, 'FL123'); -- Plan 1: Take flight F1 (second part of trip)

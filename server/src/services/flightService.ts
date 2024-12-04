@@ -4,7 +4,7 @@ import { FlightFilter } from '../models/FlightFilter';
 
 export async function getFlightById(flightId: string): Promise<Flight> {
     try {
-        const [rows] = await pool.query('SELECT * FROM flight WHERE flight_id = ?', [flightId]);
+        const [rows] = await pool.query('SELECT * FROM flight NATURAL JOIN airline WHERE flight_id = ?', [flightId]);
         const flights = rows as Flight[];
         return flights[0] || null;
     } catch (error) {

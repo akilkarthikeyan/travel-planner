@@ -12,6 +12,7 @@ export const FlightSchema = z.object({
     arrival_time: z.string(),
     equipment_description: z.string(),
     airline_id: z.string(),
+    airline_name: z.string(),
 });
 
 export type Flight = z.infer<typeof FlightSchema>;
