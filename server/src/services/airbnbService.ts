@@ -14,9 +14,15 @@ export async function getAirbnbById(airbnbId: number): Promise<Airbnb> {
 
 export async function getAllAirbnbs(filter: AirbnbFilter): Promise<Airbnb[]> {
     try {
-        let query = 'SELECT a.* FROM airbnb a JOIN host h ON a.host_id = h.host_id';
-        let conditions: string[] = [];
-        let values: any[] = [];
+        let query = `
+            SELECT a.*, h.host_name, h.host_url, h.host_response_rate, h.host_acceptance_rate, 
+                   h.host_is_superhost, h.host_identity_verified
+            FROM airbnb a
+            JOIN host h ON a.host_id = h.host_id
+        `;
+
+        const conditions: string[] = [];
+        const values: any[] = [];
 
         conditions.push('a.close_to_airport = ?');
         values.push(filter.close_to_airport);
@@ -46,10 +52,26 @@ export async function getAllAirbnbs(filter: AirbnbFilter): Promise<Airbnb[]> {
             values.push(filter.superhost);
         }
 
-        query += ' WHERE ' + conditions.join(' AND ');
+        if (filter.search_start_date && filter.search_end_date) {
+            conditions.push(`
+                NOT EXISTS (
+                    SELECT 1
+                    FROM plan_airbnb pa
+                    WHERE pa.airbnb_id = a.airbnb_id
+                      AND pa.start_date <= ?
+                      AND pa.end_date >= ?
+                )
+            `);
+            values.push(filter.search_end_date);
+            values.push(filter.search_start_date);
+        }
+
+        if (conditions.length > 0) {
+            query += ' WHERE ' + conditions.join(' AND ');
+        }
 
         if (filter.price_order !== undefined) {
-            query += ' ORDER BY a.price ' + filter.price_order 
+            query += ` ORDER BY a.price ${filter.price_order}`;
         }
 
         query += ' LIMIT ? OFFSET ?';
