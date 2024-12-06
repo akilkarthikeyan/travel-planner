@@ -15,13 +15,15 @@ export async function getFlightById(flightId: string): Promise<Flight> {
 export async function getAllFlights(filter: FlightFilter): Promise<Flight[]> {
     try {
         let query = 'SELECT f.* FROM flight f';
-        let conditions: string[] = [];
-        let values: any[] = [];
+        const conditions: string[] = [];
+        const values: any[] = [];
 
-        if(filter.airline !== undefined) {
+        if (filter.airline !== undefined) {
             query += ' JOIN airline a ON f.airline_id = a.airline_id';
             conditions.push('a.airline_name = ?');
             values.push(filter.airline);
+        } else {
+            query += ' JOIN airline a ON f.airline_id = a.airline_id';
         }
 
         conditions.push('f.starting_airport = ?');
@@ -48,20 +50,29 @@ export async function getAllFlights(filter: FlightFilter): Promise<Flight[]> {
             values.push(filter.duration);
         }
 
-        if(filter.departure_time_from !== undefined) {
+        if (filter.departure_time_from !== undefined) {
             conditions.push('f.departure_time >= ?');
             values.push(filter.departure_time_from);
         }
 
-        if(filter.departure_time_to !== undefined) {
+        if (filter.departure_time_to !== undefined) {
             conditions.push('f.departure_time <= ?');
             values.push(filter.departure_time_to);
-        }   
+        }
+
+        conditions.push(`
+            f.flight_id NOT IN (
+                SELECT flight_id
+                FROM plan_flight
+                GROUP BY flight_id
+                HAVING COUNT(*) >= 50
+            )
+        `);
 
         query += ' WHERE ' + conditions.join(' AND ');
 
         if (filter.price_order !== undefined) {
-            query += ' ORDER BY f.total_fare ' + filter.price_order 
+            query += ' ORDER BY f.total_fare ' + filter.price_order;
         }
 
         query += ' LIMIT ? OFFSET ?';
