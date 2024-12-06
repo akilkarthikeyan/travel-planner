@@ -3,6 +3,7 @@ import './App.css';
 import Navbar from './Components/Navbar';
 import UserPlans from './Components/UserPlans';
 import UserPlanDetails from './Components/UserPlanDetails';
+import LoginSignup from './Components/LoginSignup';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AddSegmentPage from './Components/AddSegmentPage';
 
@@ -12,6 +13,7 @@ function App() {
     <div className="App">
       <Navbar/>
       <Routes>
+        <Route path="/" element={<LoginSignup />} />
         <Route exact path="/users/:id/plans" element={<UserPlans/>}/>
         <Route exact path="/plans/:id" element={<UserPlanDetails/>}/>
         <Route exact path="/plans/:id/segments" element={<AddSegmentPage/>}/>
