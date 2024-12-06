@@ -8,24 +8,55 @@ import { useState, useEffect } from 'react'
 export default function UserPlanDetails() {
   const [plan, setPlan] = useState(null);
   const [selectedSegment, setSelectedSegment] = useState([]);
+  const [error, setError] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Fetch plan details when component mounts or when 'id' changes
-  useEffect(() => {
-    console.log("idhar ayya: ",id)
+  const fetchPlanDetails = () => {
     fetch(`http://localhost:3001/plans/${id}`)
       .then((response) => response.json())
       .then((data) => {
-        console.log("data",data)
         if (data.message === 'Plan Details fetched successfully') {
-          setPlan(data.data); // Store fetched plan details in state
+          setPlan(data.data);
         }
       })
       .catch((error) => {
         console.error('Error fetching plan details:', error);
+        setError('Failed to load plan details');
       });
+  };
+
+  useEffect(() => {
+    fetchPlanDetails();
   }, [id]);
+
+  const handleDeleteSegment = async (segmentId, event) => {
+    event.stopPropagation(); // Prevent triggering the segment selection
+    
+    try {
+      const response = await fetch(`http://localhost:3001/plans/${id}/segment/${segmentId}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.status === 204) {
+        // Refresh plan details after successful deletion
+        fetchPlanDetails();
+      } else {
+        throw new Error('Failed to delete segment');
+      }
+    } catch (error) {
+      console.error('Error deleting segment:', error);
+      setError('Failed to delete segment');
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-screen">
+        <p className="text-lg font-semibold text-red-600">{error}</p>
+      </div>
+    );
+  }
 
   // Show a loading message while waiting for the plan details
   if (!plan) {
@@ -76,8 +107,12 @@ export default function UserPlanDetails() {
                 )}
               </div>
               <div className="flex space-x-2">
-                <button className="bg-gray-200 px-3 py-1 rounded text-sm">Edit</button>
-                <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">Remove</button>
+              <button 
+                  className="bg-red-500 text-white px-3 py-1 rounded text-sm"
+                  onClick={(e) => handleDeleteSegment(segment.segment_id, e)}
+                >
+                  Remove
+                </button>
               </div>
             </div>
           </div>
