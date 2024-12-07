@@ -3,12 +3,12 @@ import styles from '../Styles/UserPlanDetails.module.css'
 import UserBooking from './UserBooking'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify';
 
 
 export default function UserPlanDetails() {
   const [plan, setPlan] = useState(null);
   const [selectedSegment, setSelectedSegment] = useState([]);
-  const [error, setError] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -22,7 +22,7 @@ export default function UserPlanDetails() {
       })
       .catch((error) => {
         console.error('Error fetching plan details:', error);
-        setError('Failed to load plan details');
+        
       });
   };
 
@@ -39,24 +39,17 @@ export default function UserPlanDetails() {
       });
       
       if (response.status === 204) {
-        // Refresh plan details after successful deletion
         fetchPlanDetails();
+        toast.success('Segment deleted successfully');
       } else {
         throw new Error('Failed to delete segment');
       }
     } catch (error) {
       console.error('Error deleting segment:', error);
-      setError('Failed to delete segment');
+      toast.error('Failed to delete segment');
     }
   };
 
-  if (error) {
-    return (
-      <div className="p-6 flex justify-center items-center min-h-screen">
-        <p className="text-lg font-semibold text-red-600">{error}</p>
-      </div>
-    );
-  }
 
   // Show a loading message while waiting for the plan details
   if (!plan) {

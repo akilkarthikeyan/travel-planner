@@ -6,10 +6,12 @@ import UserPlanDetails from './Components/UserPlanDetails';
 import LoginSignup from './Components/LoginSignup';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AddSegmentPage from './Components/AddSegmentPage';
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
+    <>
     <div className="App">
       <Navbar/>
       <Routes>
@@ -19,7 +21,8 @@ function App() {
         <Route exact path="/plans/:id/segments" element={<AddSegmentPage/>}/>
       </Routes>
     </div>
-
+    <ToastContainer />
+    </>
   );
 }
 
