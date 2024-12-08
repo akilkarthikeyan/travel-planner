@@ -33,6 +33,26 @@ export default function UserPlans() {
     setNewPlan((prev) => ({ ...prev, [name]: value }));
   };
 
+  //delete plan
+  const handleDeletePlan = async (planId, event) => {
+    event.stopPropagation(); // Prevent navigation when clicking delete
+    
+    try {
+      const response = await fetch(`http://localhost:3001/plans/${planId}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.status === 204) {
+        // Remove the deleted plan from state
+        setPlans(plans.filter(plan => plan.plan_id !== planId));
+      } else {
+        throw new Error('Failed to delete plan');
+      }
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+    }
+  };
+
   const handleCreatePlan = () => {
     // Prepare the payload for the API request
     const payload = {
@@ -81,8 +101,18 @@ export default function UserPlans() {
             className="bg-white shadow rounded-lg p-4 hover:shadow-lg transition cursor-pointer"
             onClick={() => navigate(`/plans/${plan.plan_id}`)}
           >
-            <h3 className="text-xl font-semibold">{plan.plan_name}</h3>
-            <p className="text-gray-600">{plan.plan_description}</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-semibold">{plan.plan_name}</h3>
+                <p className="text-gray-600">{plan.plan_description}</p>
+              </div>
+              <button
+                onClick={(e) => handleDeletePlan(plan.plan_id, e)}
+                className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+              >
+                Remove
+              </button>
+            </div>
           </div>
         ))}
         <button
