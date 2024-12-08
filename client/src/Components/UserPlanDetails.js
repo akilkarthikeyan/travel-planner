@@ -1,10 +1,7 @@
 import React from 'react'
-import styles from '../Styles/UserPlanDetails.module.css'
-import UserBooking from './UserBooking'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { toast } from 'react-toastify';
-
 
 export default function UserPlanDetails() {
   const [plan, setPlan] = useState(null);
@@ -17,6 +14,7 @@ export default function UserPlanDetails() {
       .then((response) => response.json())
       .then((data) => {
         if (data.message === 'Plan Details fetched successfully') {
+          console.log(data.data);
           setPlan(data.data);
         }
       })
@@ -30,17 +28,17 @@ export default function UserPlanDetails() {
     fetchPlanDetails();
   }, [id]);
 
-  const handleDeleteSegment = async (segmentId, event) => {
+  const handleDeleteSegment = async (segment, event) => {
     event.stopPropagation(); // Prevent triggering the segment selection
     
     try {
-      const response = await fetch(`http://localhost:3001/plans/${id}/segment/${segmentId}`, {
+      const response = await fetch(`http://localhost:3001/plans/${id}/segment/${segment.segment_id}`, {
         method: 'DELETE',
       });
       
       if (response.status === 204) {
         fetchPlanDetails();
-        toast.success('Segment deleted successfully');
+        toast.success(`${segment.segment_type.charAt(0).toUpperCase() + segment.segment_type.slice(1)} deleted successfully`);
       } else {
         throw new Error('Failed to delete segment');
       }
@@ -102,7 +100,7 @@ export default function UserPlanDetails() {
               <div className="flex space-x-2">
               <button 
                   className="bg-red-500 text-white px-3 py-1 rounded text-sm"
-                  onClick={(e) => handleDeleteSegment(segment.segment_id, e)}
+                  onClick={(e) => handleDeleteSegment(segment, e)}
                 >
                   Remove
                 </button>

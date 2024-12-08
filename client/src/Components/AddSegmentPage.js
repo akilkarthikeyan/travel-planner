@@ -1,56 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+// import { DateRange } from 'react-date-range';
 
 export default function AddSegmentPage() {
-  const [activeTab, setActiveTab] = useState('airbnb');
+  const [activeTab, setActiveTab] = useState("airbnb");
   const [items, setItems] = useState([]);
-  const [filters, setFilters] = useState({ rating: 3, offset: 0, limit: 10, close_to_airport: "" });
+  const [filters, setFilters] = useState({
+    rating: 3,
+    offset: 0,
+    limit: 10,
+    close_to_airport: "",
+  });
   const [isRatingActive, setIsRatingActive] = useState(false);
-  const [totalItems, setTotalItems] = useState(0); // Track the total number of items
+
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const addToPlan = async (segmentID) => {
+    try {
+      
+      console.log(filters.search_start_date + " " + filters.search_end_date)
+      const response = await fetch(`http://localhost:3001/plans/${id}/segment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          plan_id: Number(id),
+          segment_type: activeTab,
+          segment_id: String(segmentID),
+          start_date: filters.search_start_date,
+          end_date: filters.search_end_date
+        }),
+      });
+      if (response.ok) {
+        // navigate(`/plans/${id}`);
+        toast.success((activeTab === "flight" ? "Flight" : "Airbnb") + " added successfully");
+      }
+      else if(response.status === 400) {
+        const message = await response.json();
+        toast.error(message.message);
+      } 
+      else {
+        throw new Error("An unexpected error occurred");
+      }
+    } catch (error) {
+      console.error(error + ", try again");
+      toast.error("An unexpected error occurred, try again");
+    }
+  }
+
   const fetchItems = async (tab) => {
     try {
-      console.log(filters)
-      const url = tab === 'airbnb' ? 'http://localhost:3001/airbnbs' : 'http://localhost:3001/flights';
+      console.log(filters);
+      const url =
+        tab === "airbnb"
+          ? "http://localhost:3001/airbnbs"
+          : "http://localhost:3001/flights";
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(filters),
       });
 
       if (!response.ok) {
-        throw new Error('Error fetching data');
+        throw new Error("Error fetching data");
       }
       const data = await response.json();
-      console.log("fetchitems: ",data)
-      setItems(data.data); // Assume the response contains 'items'
-      // setTotalItems(data.total); // Assume the response contains 'total' (total number of items)
+      if (data.data.length === 0) {
+        toast.error("No " + activeTab + " found for the given filters");
+      }
+      // console.log("fetchitems: ", data);
+      setItems(data.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     }
   };
   useEffect(() => {
-    console.log(filters)
+    console.log(filters);
     // Trigger fetchItems whenever filters change
-    if (activeTab === "airbnb" && filters.close_to_airport !== "")
-      fetchItems("airbnb");
-    else if(activeTab === "flight" && filters.starting_airport !== "" && filters.destination_airport !== "" && filters.date !== "")
+    if (activeTab === "airbnb" && filters.close_to_airport !== "" && filters.search_start_date !== "" && filters.search_end_date !== "") {
+      if(filters.search_start_date > filters.search_end_date) {
+        toast.error("Start date should be less than end date");
+      }
+      else
+        fetchItems("airbnb");
+    }
+    else if (
+      activeTab === "flight" &&
+      filters.starting_airport !== "" &&
+      filters.destination_airport !== "" &&
+      filters.date !== ""
+    )
       fetchItems("flight");
   }, [filters]);
 
   useEffect(() => {
-      setItems([])    
-      if(activeTab === 'airbnb') {
-        setFilters({ rating: 3, offset: 0, limit: 10, close_to_airport: "" });
-      }
-      else {
-        setFilters({starting_airport: "", destination_airport: "", date: "", offset: 0, limit: 10});
-      }
-  }, [activeTab])
+    setItems([]);
+    if (activeTab === "airbnb") {
+      setFilters({ rating: 3, offset: 0, limit: 10, close_to_airport: "", search_start_date: "", search_end_date: ""});
+    } else {
+      setFilters({
+        starting_airport: "",
+        destination_airport: "",
+        date: "",
+        offset: 0,
+        limit: 10,
+      });
+    }
+  }, [activeTab]);
 
   const handleFilterChange = (e) => {
     setFilters({
@@ -60,23 +121,21 @@ export default function AddSegmentPage() {
     });
   };
 
-
   const handlePageChange = (direction) => {
     // console.log('idhar', direction)
-    if(direction==='next'){
+    if (direction === "next") {
       // console.log('idhar', direction)
-      setFilters(prevFilters => ({
-        ...prevFilters,           // Keep the previous state values
+      setFilters((prevFilters) => ({
+        ...prevFilters, // Keep the previous state values
         offset: prevFilters.offset + 1, // Increment the offset by 1
-      }))
+      }));
     }
-    if(direction==='prev' && filters.offset>0){
+    if (direction === "prev" && filters.offset > 0) {
       // console.log('idhar', direction)
-      setFilters(prevFilters => ({
-        ...prevFilters,           // Keep the previous state values
+      setFilters((prevFilters) => ({
+        ...prevFilters, // Keep the previous state values
         offset: prevFilters.offset - 1, // Increment the offset by 1
-      }))
-      
+      }));
     }
   };
 
@@ -94,24 +153,28 @@ export default function AddSegmentPage() {
 
       <div className="mb-4 flex">
         <button
-          className={`px-4 py-2 mr-2 rounded ${activeTab === 'airbnb' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          onClick={() => setActiveTab('airbnb')}
+          className={`px-4 py-2 mr-2 rounded ${
+            activeTab === "airbnb" ? "bg-blue-500 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("airbnb")}
         >
           Accommodation
         </button>
         <button
-          className={`px-4 py-2 rounded ${activeTab === 'flight' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          onClick={() => setActiveTab('flight')}
+          className={`px-4 py-2 rounded ${
+            activeTab === "flight" ? "bg-blue-500 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("flight")}
         >
           Flights
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="col-span-1 bg-white p-4 rounded shadow max-h-[550px]">
+        <div className="col-span-1 bg-white p-4 rounded shadow max-h-[600px]">
           <h3 className="text-xl font-semibold mb-2">Filters</h3>
           <div>
-            {activeTab === 'airbnb' && (
+            {activeTab === "airbnb" && (
               <div className="space-y-3">
                 <div>
                   <label className="block mb-2 font-medium">Price Order</label>
@@ -121,7 +184,9 @@ export default function AddSegmentPage() {
                     onChange={handleFilterChange}
                     defaultValue=""
                   >
-                    <option value="" disabled hidden>Select Order</option>
+                    <option value="" disabled hidden>
+                      Select Order
+                    </option>
                     <option value="asc">Lower to Higher</option>
                     <option value="desc">Higher to Lower</option>
                   </select>
@@ -138,7 +203,9 @@ export default function AddSegmentPage() {
                     onChange={handleFilterChange}
                     defaultValue=""
                   >
-                    <option value="" disabled hidden>Select Airport</option>
+                    <option value="" disabled hidden>
+                      Select Airport
+                    </option>
                     <option value="CLT">CLT</option>
                     <option value="DEN">DEN</option>
                     <option value="DFW">DFW</option>
@@ -151,9 +218,33 @@ export default function AddSegmentPage() {
                   </select>
                 </div>
 
+                {/* From Date */}
+                <div>
+                  <label className="block mb-2 font-medium">From Date <span className="text-red-500">*</span></label>
+                  <input
+                    type="date"
+                    name="search_start_date"
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    onChange={handleFilterChange}
+                  />
+                </div>
+
+                {/* To Date */}
+               <div>
+                  <label className="block mb-2 font-medium">To Date <span className="text-red-500">*</span></label>
+                  <input
+                    type="date"
+                    name="search_end_date"
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    onChange={handleFilterChange}
+                  />
+                </div>
+
                 {/* Number of People */}
                 <div>
-                  <label className="block mb-2 font-medium">Number of People</label>
+                  <label className="block mb-2 font-medium">
+                    Number of People
+                  </label>
                   <input
                     name="accomodates"
                     placeholder="Enter number of people"
@@ -164,7 +255,9 @@ export default function AddSegmentPage() {
 
                 {/* Minimum Rating */}
                 <div>
-                  <label className="block mb-2 font-medium">Minimum Rating</label>
+                  <label className="block mb-2 font-medium">
+                    Minimum Rating
+                  </label>
                   <div className="relative group">
                     {isRatingActive && (
                       <div
@@ -200,7 +293,7 @@ export default function AddSegmentPage() {
               </div>
             )}
 
-            {activeTab === 'flight' && (
+            {activeTab === "flight" && (
               <div className="space-y-3">
                 <div>
                   <label className="block mb-2 font-medium">Price Order</label>
@@ -210,7 +303,9 @@ export default function AddSegmentPage() {
                     onChange={handleFilterChange}
                     defaultValue=""
                   >
-                    <option value="" disabled hidden>Select Order</option>
+                    <option value="" disabled hidden>
+                      Select Order
+                    </option>
                     <option value="asc">Lower to Higher</option>
                     <option value="desc">Higher to Lower</option>
                   </select>
@@ -218,14 +313,16 @@ export default function AddSegmentPage() {
 
                 {/* Starting Airport */}
                 <div>
-                  <label className="block mb-2 font-medium">From</label>
+                  <label className="block mb-2 font-medium">From <span className="text-red-500">*</span></label>
                   <select
                     name="starting_airport"
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                     onChange={handleFilterChange}
                     defaultValue=""
                   >
-                    <option value="" disabled hidden>Select From</option>
+                    <option value="" disabled hidden>
+                      Select From
+                    </option>
                     <option value="CLT">CLT</option>
                     <option value="DEN">DEN</option>
                     <option value="DFW">DFW</option>
@@ -240,14 +337,16 @@ export default function AddSegmentPage() {
 
                 {/* Destination Airport */}
                 <div>
-                  <label className="block mb-2 font-medium">To</label>
+                  <label className="block mb-2 font-medium">To <span className="text-red-500">*</span></label>
                   <select
                     name="destination_airport"
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                     onChange={handleFilterChange}
                     defaultValue=""
                   >
-                    <option value="" disabled hidden>Select To</option>
+                    <option value="" disabled hidden>
+                      Select To
+                    </option>
                     <option value="CLT">CLT</option>
                     <option value="DEN">DEN</option>
                     <option value="DFW">DFW</option>
@@ -262,7 +361,7 @@ export default function AddSegmentPage() {
 
                 {/* Date Picker */}
                 <div>
-                  <label className="block mb-2 font-medium">Date</label>
+                  <label className="block mb-2 font-medium">Date <span className="text-red-500">*</span></label>
                   <input
                     type="date"
                     name="date"
@@ -275,76 +374,90 @@ export default function AddSegmentPage() {
           </div>
         </div>
         {/* {activeTab=='airbnb' &&  */}
-        <div className="col-span-2 bg-white p-4 rounded shadow  max-h-[550px] overflow-y-auto">
+        <div className="col-span-2 bg-white p-4 rounded shadow  max-h-[600px] overflow-y-auto">
           <div className="flex justify-between items-center mb-2">
-              <button
-                onClick={() => handlePageChange('prev')}
-                disabled={items.length == 0 || filters.offset <= 0}
-                className="bg-blue-500 px-4 py-2 rounded text-white disabled:bg-gray-300"
-              >
-                Previous
-              </button>
-            </div>
+            <button
+              onClick={() => handlePageChange("prev")}
+              disabled={filters.offset <= 0}
+              className="bg-blue-500 px-4 py-2 rounded text-white disabled:bg-gray-300"
+            >
+              Previous
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-            {activeTab=='airbnb'? (items.map((item) => (
-              <div key={item.airbnb_id} className="bg-gray-100 p-4 rounded">
-                <h3 className="font-semibold text-xl mb-2">
-                  <a href={item.listing_url} target="_blank" rel="noopener noreferrer">
-                    {item.name}
-                  </a>
-                </h3>
-                <p className="text-gray-600 mb-4">{item.listing_url}</p>
+            {activeTab == "airbnb"
+              ? items.map((item) => (
+                  <div key={item.airbnb_id} className="bg-gray-100 p-4 rounded">
+                    <h3 className="font-semibold text-xl mb-2">
+                      <a
+                        href={item.listing_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {item.name}
+                      </a>
+                    </h3>
+                    <p className="text-gray-600 mb-4">{item.listing_url}</p>
 
-                {/* Property details in horizontal layout */}
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="flex justify-between">
-                    <strong>Bedrooms:</strong>
-                    <span>{item.bedrooms}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <strong>Bathrooms:</strong>
-                    <span>{item.bathrooms}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <strong>Beds:</strong>
-                    <span>{item.beds}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <strong>Accommodates:</strong>
-                    <span>{item.accommodates}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <strong>Price:</strong>
-                    <span>${item.price}</span>
-                  </div>
-                </div>
+                    {/* Property details in horizontal layout */}
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <div className="flex justify-between">
+                        <strong>Bedrooms:</strong>
+                        <span>{item.bedrooms}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <strong>Bathrooms:</strong>
+                        <span>{item.bathrooms}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <strong>Beds:</strong>
+                        <span>{item.beds}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <strong>Accommodates:</strong>
+                        <span>{item.accommodates}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <strong>Price:</strong>
+                        <span>${item.price}</span>
+                      </div>
+                    </div>
 
-                {/* Display Airbnb image */}
-                <img
-                  src={item.picture_url}
-                  alt={item.name}
-                  className="w-full h-48 object-cover rounded mb-4"
-                />
+                    {/* Display Airbnb image */}
+                    <img
+                      src={item.picture_url}
+                      alt={item.name}
+                      className="w-full h-48 object-cover rounded mb-4"
+                    />
 
-                {/* Rating and Reviews */}
-                <div className="flex items-center text-gray-700 mb-4">
-                  <span className="font-semibold">Rating:</span>
-                  <span className="ml-2">{item.review_scores_rating} / 5</span>
-                  <span className="ml-2 text-gray-500">({item.number_of_reviews} reviews)</span>
-                </div>
+                    {/* Rating and Reviews */}
+                    <div className="flex items-center text-gray-700 mb-4">
+                      <span className="font-semibold">Rating:</span>
+                      <span className="ml-2">
+                        {item.review_scores_rating} / 5
+                      </span>
+                      <span className="ml-2 text-gray-500">
+                        ({item.number_of_reviews} reviews)
+                      </span>
+                    </div>
 
-                {/* Add to plan button */}
-                <button className="bg-green-500 text-white py-2 px-4 rounded mt-2">
-                  Add to Plan
-                </button>
-              </div>
-            ))):(items.map((flight) => (
-              <div key={flight.flight_id} className="bg-gray-100 p-4 rounded">
+                    {/* Add to plan button */}
+                    <button className="bg-green-500 text-white py-2 px-4 rounded mt-2" onClick={()=>addToPlan(item.airbnb_id)}>
+                      Add to Plan
+                    </button>
+                  </div>
+                ))
+              : items.map((flight) => (
+                <div
+                key={flight.flight_id}
+                className="bg-gray-100 p-4 rounded"
+              >
                 {/* Flight details */}
                 <h3 className="font-semibold text-xl mb-2">
                   {flight.starting_airport} to {flight.destination_airport}
                 </h3>
-        
+              
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="flex justify-between">
                     <strong>Departure:</strong>
@@ -363,7 +476,7 @@ export default function AddSegmentPage() {
                     <span>${flight.total_fare}</span>
                   </div>
                 </div>
-        
+              
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex justify-between">
                     <strong>Airline:</strong>
@@ -373,27 +486,35 @@ export default function AddSegmentPage() {
                     <strong>Equipment:</strong>
                     <span>{flight.equipment_description}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <strong>Basic Economy:</strong>
+                    <span>{flight.is_basic_economy ? 'Yes' : 'No'}</span>
+                  </div>
                 </div>
-        
+              
                 {/* Add to plan button */}
-                <button className="bg-green-500 text-white py-2 px-4 rounded mt-2">
+                <button
+                  className="bg-green-500 text-white py-2 px-4 rounded mt-2"
+                  onClick={() => addToPlan(flight.flight_id)}
+                >
                   Add to Plan
                 </button>
               </div>
-            )))}
+              
+                ))}
           </div>
-            {/* Pagination */}
-            <div className="flex justify-between items-center mt-4">
-              <button
-                onClick={() => handlePageChange('next')}
-                disabled={items.length == 0}
-                className="bg-blue-500 px-4 py-2 rounded text-white disabled:bg-gray-300"
-              >
-                Next
-              </button>
-            </div>
-        </div>
+          {/* Pagination */}
+          <div className="flex justify-between items-center mt-4">
+            <button
+              onClick={() => handlePageChange("next")}
+              disabled={items.length < 10}
+              className="bg-blue-500 px-4 py-2 rounded text-white disabled:bg-gray-300"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
+    </div>
   );
 }

@@ -261,12 +261,15 @@ CREATE TRIGGER insert_plan_airbnb
     FOR EACH ROW
 BEGIN
     DECLARE max_ordinal INT;
-    SELECT COALESCE(MAX(ordinal), 0)
+    SELECT MAX(ordinal)
     FROM (
              SELECT ordinal FROM plan_airbnb WHERE plan_id = NEW.plan_id
              UNION
              SELECT ordinal FROM plan_flight WHERE plan_id = NEW.plan_id
          ) combined INTO max_ordinal;
+    IF max_ordinal IS NULL THEN
+        SET max_ordinal = 0;
+    END IF;
     SET NEW.ordinal = max_ordinal + 1;
 END;
 
@@ -276,11 +279,14 @@ CREATE TRIGGER insert_plan_flight
     FOR EACH ROW
 BEGIN
     DECLARE max_ordinal INT;
-    SELECT COALESCE(MAX(ordinal), 0)
+    SELECT MAX(ordinal)
     FROM (
              SELECT ordinal FROM plan_airbnb WHERE plan_id = NEW.plan_id
              UNION
              SELECT ordinal FROM plan_flight WHERE plan_id = NEW.plan_id
          ) combined INTO max_ordinal;
+    IF max_ordinal IS NULL THEN
+        SET max_ordinal = 0;
+    END IF;
     SET NEW.ordinal = max_ordinal + 1;
 END;

@@ -20,6 +20,16 @@ export async function getUserById(userId: number): Promise<User> {
   }
 }
 
+export async function getUserByEmail(email: string): Promise<User> {
+  try {
+    const [rows] = await pool.query('SELECT * FROM user WHERE email = ?', [email]);
+    const users = rows as User[];
+    return users[0] || null;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function createUser(user: User): Promise<User> {
   try {
     const query = `INSERT INTO user (user_name, phone, email) VALUES (?, ?, ?)`;

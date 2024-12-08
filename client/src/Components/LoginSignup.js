@@ -14,7 +14,7 @@ export default function LoginSignup() {
   const navigate = useNavigate();
 
   //login
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     const password = e.target.password.value;
     if (password !== 'test123') {
@@ -22,11 +22,11 @@ export default function LoginSignup() {
       return;
     }
     
-    fetch(`http://localhost:3001/users/${loginData.userId}`)
+    fetch(`http://localhost:3001/users/email/${loginData.email}`)
       .then(response => response.json())
       .then(data => {
         if (data.data) {
-          navigate(`/users/${loginData.userId}/plans`);
+          navigate(`/users/${data.data.user_id}/plans`);
         } else {
           setError('User not found');
         }
@@ -100,14 +100,14 @@ export default function LoginSignup() {
           <form onSubmit={handleLogin}>
             <div className={styles.inputGroup}>
               <input
-                id="userId"
-                name="userId"
-                type="text"
+                id="email"
+                name="email"
+                type="email"
                 required
                 className={styles.input}
-                placeholder="User ID"
-                value={loginData.userId}
-                onChange={(e) => setLoginData({ ...loginData, userId: e.target.value })}
+                placeholder="Email"
+                value={loginData.email}
+                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
               />
               <input
                 id="password"

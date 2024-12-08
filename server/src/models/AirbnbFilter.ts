@@ -23,8 +23,8 @@ export const AirbnbFilterSchema = z.object({
     offset: z.coerce.number(), // Ensures offset is a number (coerced from string)
     limit: z.coerce.number().max(100), // Coerces and ensures max is 100
 
-    search_start_date: z.string().optional(),
-    search_end_date: z.string().optional()
+    search_start_date: z.string(),
+    search_end_date: z.string()
 }).refine(data => data.min_price === undefined || data.max_price === undefined || data.min_price <= data.max_price, {
     message: "min_price should be lesser than or equal to max_price",
     path: ["min_price"]
