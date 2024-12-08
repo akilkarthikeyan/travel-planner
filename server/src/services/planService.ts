@@ -27,8 +27,8 @@ export async function getPlanById(planId: number): Promise<Plan> {
         const [rows] = await pool.query('SELECT * FROM plan WHERE plan_id = ?', [planId]);
         const plans = rows as Plan[];
         let plan: Plan | undefined = plans[0];
-        const [flights]: [any, any] = await pool.query('SELECT * FROM plan_flight WHERE plan_id = ?', [planId]);
-        const [airbnbs]: [any, any] = await pool.query('SELECT * FROM plan_airbnb WHERE plan_id = ?', [planId]);
+        const [flights]: [any, any] = await pool.query('SELECT pf.*, f.starting_airport, f.destination_airport, f.total_fare, DATE_FORMAT(f.flight_date, "%Y-%m-%d") AS flight_date FROM plan_flight pf JOIN flight f ON pf.flight_id = f.flight_id WHERE plan_id = ?', [planId]);
+        const [airbnbs]: [any, any] = await pool.query('SELECT pa.*, a.close_to_airport, a.price FROM plan_airbnb pa JOIN airbnb a ON pa.airbnb_id = a.airbnb_id WHERE plan_id = ?', [planId]);
 
         const flightSegments: Segment[] = flights.map((flight: any) => {
             const { flight_id, plan_id, ...rest } = flight;

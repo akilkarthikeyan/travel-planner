@@ -14,6 +14,10 @@ export default function AddSegmentPage() {
   });
   const [isRatingActive, setIsRatingActive] = useState(false);
 
+  const [fromDate, setFromDate] = useState("");
+  const lastSixMonthsStart = "2022-07-01"; // Start of July 2022
+  const lastSixMonthsEnd = "2022-12-31"; // End of December 2022
+
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -220,22 +224,30 @@ export default function AddSegmentPage() {
 
                 {/* From Date */}
                 <div>
-                  <label className="block mb-2 font-medium">From Date <span className="text-red-500">*</span></label>
+                  <label className="block mb-2 font-medium">
+                    From Date <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="date"
                     name="search_start_date"
                     className="w-full border border-gray-300 rounded px-3 py-2"
+                    max={lastSixMonthsEnd}
+                    min={lastSixMonthsStart}
                     onChange={handleFilterChange}
                   />
                 </div>
 
                 {/* To Date */}
-               <div>
-                  <label className="block mb-2 font-medium">To Date <span className="text-red-500">*</span></label>
+                <div>
+                  <label className="block mb-2 font-medium">
+                    To Date <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="date"
                     name="search_end_date"
                     className="w-full border border-gray-300 rounded px-3 py-2"
+                    min={filters.search_start_date || lastSixMonthsStart} // From Date selected or start of July 2022
+                    max={lastSixMonthsEnd} // End of 2022
                     onChange={handleFilterChange}
                   />
                 </div>
@@ -365,6 +377,8 @@ export default function AddSegmentPage() {
                   <input
                     type="date"
                     name="date"
+                    max={lastSixMonthsEnd}
+                    min={lastSixMonthsStart}
                     className="w-full border border-gray-300 rounded px-3 py-2"
                     onChange={handleFilterChange}
                   />

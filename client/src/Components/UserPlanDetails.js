@@ -80,35 +80,60 @@ export default function UserPlanDetails() {
       </button>
 
       <div className="space-y-4">
-        {plan.segments.map(segment => (
-          <div 
-            key={segment.segment_id} 
-            className="bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-lg"
-            onClick={() => setSelectedSegment(segment)}
+  {plan.segments.map(segment => (
+    <div 
+      key={segment.segment_id} 
+      className="bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-lg"
+      onClick={() => setSelectedSegment(segment)}
+    >
+      <div className="flex justify-between items-center">
+        <div>
+          <p className="font-semibold text-lg">
+            {segment.segment_type === 'airbnb' 
+              ? `Airbnb` 
+              : `Flight: ${segment.starting_airport} To ${segment.destination_airport}`}
+          </p>
+          {/* Common Fields */}
+          {segment.segment_type === 'airbnb' && (
+            <>
+              <p className="text-sm text-gray-600">
+                Dates: {segment.start_date} - {segment.end_date}
+              </p>
+              <p className="text-sm text-gray-600">
+                Close to Airport: {segment.close_to_airport}
+              </p>
+              <p className="text-sm text-gray-600">
+                Price: ${segment.price}
+              </p>
+            </>
+          )}
+          {segment.segment_type === 'flight' && (
+            <>
+              <p className="text-sm text-gray-600">
+                Flight Date: {segment.flight_date}
+              </p>
+              {/* <p className="text-sm text-gray-600">
+                From: {segment.starting_airport} To: {segment.destination_airport}
+              </p> */}
+              <p className="text-sm text-gray-600">
+                Total Fare: ${segment.total_fare}
+              </p>
+            </>
+          )}
+        </div>
+        <div className="flex space-x-2">
+          <button 
+            className="bg-red-500 text-white px-3 py-1 rounded text-sm"
+            onClick={(e) => handleDeleteSegment(segment, e)}
           >
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-semibold">
-                  {segment.segment_type === 'airbnb' ? `Airbnb ${segment.segment_id}` : `Flight ${segment.segment_id}`}
-                </p>
-                {segment.start_date && segment.end_date && (
-                  <p className="text-sm text-gray-600">
-                    {segment.start_date} - {segment.end_date}
-                  </p>
-                )}
-              </div>
-              <div className="flex space-x-2">
-              <button 
-                  className="bg-red-500 text-white px-3 py-1 rounded text-sm"
-                  onClick={(e) => handleDeleteSegment(segment, e)}
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+            Remove
+          </button>
+        </div>
       </div>
+    </div>
+  ))}
+</div>
+
 
       {/* {renderSegmentDetails()} */}
     </div>
