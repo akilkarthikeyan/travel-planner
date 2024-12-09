@@ -5,6 +5,8 @@ export default function UserPlans() {
   const [plans, setPlans] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newPlan, setNewPlan] = useState({ name: '', description: '' });
+  const [editMode, setEditMode] = useState(false); // Track if we're in edit mode
+  const [currentPlanId, setCurrentPlanId] = useState(null); // Track the plan to be edited
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -22,9 +24,24 @@ export default function UserPlans() {
       });
   }, [id]);
 
-  const openModal = () => setIsModalOpen(true);
+  const openModal = (plan = null) => {
+    if (plan) {
+      setEditMode(true);
+      setCurrentPlanId(plan.plan_id);
+      setNewPlan({
+        name: plan.plan_name,
+        description: plan.plan_description,
+      });
+    } else {
+      setEditMode(false);
+      setNewPlan({ name: '', description: '' });
+    }
+    setIsModalOpen(true);
+  };
+
   const closeModal = () => {
     setIsModalOpen(false);
+    setEditMode(false);
     setNewPlan({ name: '', description: '' });
   };
 
@@ -33,7 +50,6 @@ export default function UserPlans() {
     setNewPlan((prev) => ({ ...prev, [name]: value }));
   };
 
-  //delete plan
   const handleDeletePlan = async (planId, event) => {
     event.stopPropagation(); // Prevent navigation when clicking delete
     
@@ -54,14 +70,12 @@ export default function UserPlans() {
   };
 
   const handleCreatePlan = () => {
-    // Prepare the payload for the API request
     const payload = {
       plan_name: newPlan.name,
       user_id: Number(id),
       plan_description: newPlan.description,
     };
   
-    // Make a POST request to the API to create the plan
     fetch('http://localhost:3001/plans', {
       method: 'POST',
       headers: {
@@ -78,9 +92,8 @@ export default function UserPlans() {
             plan_description: newPlan.description,
           };
   
-          // Update the state with the new plan
           setPlans((prevPlans) => [...prevPlans, newPlanData]);
-          closeModal(); // Close the modal
+          closeModal();
           console.log('New Plan Created:', newPlanData);
         } else {
           console.error('Error creating plan:', data);
@@ -89,7 +102,41 @@ export default function UserPlans() {
       .catch((error) => {
         console.error('API Error:', error);
       });
-  };  
+  };
+
+  const handleUpdatePlan = () => {
+    const payload = {
+      plan_name: newPlan.name,
+      plan_description: newPlan.description,
+    };
+
+    fetch(`http://localhost:3001/plans/${currentPlanId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === 'Plan updated successfully') {
+          setPlans((prevPlans) =>
+            prevPlans.map((plan) =>
+              plan.plan_id === currentPlanId
+                ? { ...plan, plan_name: newPlan.name, plan_description: newPlan.description }
+                : plan
+            )
+          );
+          closeModal();
+          console.log('Plan Updated:', data);
+        } else {
+          console.error('Error updating plan:', data);
+        }
+      })
+      .catch((error) => {
+        console.error('API Error:', error);
+      });
+  };
 
   return (
     <div className="p-6">
@@ -106,18 +153,29 @@ export default function UserPlans() {
                 <h3 className="text-xl font-semibold">{plan.plan_name}</h3>
                 <p className="text-gray-600">{plan.plan_description}</p>
               </div>
-              <button
-                onClick={(e) => handleDeletePlan(plan.plan_id, e)}
-                className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
-              >
-                Remove
-              </button>
+              <div>
+                <button
+                  onClick={(e) => handleDeletePlan(plan.plan_id, e)}
+                  className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 mr-2"
+                >
+                  Remove
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openModal(plan);
+                  }}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600"
+                >
+                  Edit
+                </button>
+              </div>
             </div>
           </div>
         ))}
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          onClick={openModal}
+          onClick={() => openModal()}
         >
           Create New Plan
         </button>
@@ -126,7 +184,6 @@ export default function UserPlans() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          {/* Modal Content */}
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative">
             <button
               className="absolute top-1 right-3 text-gray-1000 hover:text-gray-800 text-2xl font-bold p-2"
@@ -134,7 +191,9 @@ export default function UserPlans() {
             >
               ×
             </button>
-            <h3 className="text-xl font-bold mb-4">Create a New Plan</h3>
+            <h3 className="text-xl font-bold mb-4">
+              {editMode ? 'Edit Plan' : 'Create a New Plan'}
+            </h3>
             <form className="space-y-4">
               <div>
                 <label
@@ -171,10 +230,10 @@ export default function UserPlans() {
               </div>
               <button
                 type="button"
-                onClick={handleCreatePlan}
+                onClick={editMode ? handleUpdatePlan : handleCreatePlan}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
               >
-                Create Plan
+                {editMode ? 'Update Plan' : 'Create Plan'}
               </button>
             </form>
           </div>
