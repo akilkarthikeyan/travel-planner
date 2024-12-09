@@ -12,7 +12,7 @@ export default function UserPlans() {
 
   // Fetch data when the component mounts
   useEffect(() => {
-    fetch(`http://localhost:3001/users/${id}/plans`)
+    fetch(`https://travel-planner-440113.uc.r.appspot.com/users/${id}/plans`)
       .then((response) => response.json())
       .then((data) => {
         if (data.message === 'Plans fetched successfully') {
@@ -54,7 +54,7 @@ export default function UserPlans() {
     event.stopPropagation(); // Prevent navigation when clicking delete
     
     try {
-      const response = await fetch(`http://localhost:3001/plans/${planId}`, {
+      const response = await fetch(`https://travel-planner-440113.uc.r.appspot.com/plans/${planId}`, {
         method: 'DELETE',
       });
       
@@ -76,7 +76,7 @@ export default function UserPlans() {
       plan_description: newPlan.description,
     };
   
-    fetch('http://localhost:3001/plans', {
+    fetch('https://travel-planner-440113.uc.r.appspot.com/plans', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ export default function UserPlans() {
       plan_description: newPlan.description,
     };
 
-    fetch(`http://localhost:3001/plans/${currentPlanId}`, {
+    fetch(`https://travel-planner-440113.uc.r.appspot.com/plans/${currentPlanId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

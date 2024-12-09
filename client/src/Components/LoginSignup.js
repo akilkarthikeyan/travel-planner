@@ -22,7 +22,7 @@ export default function LoginSignup() {
       return;
     }
     
-    fetch(`http://localhost:3001/users/email/${loginData.email}`)
+    fetch(`https://travel-planner-440113.uc.r.appspot.com/users/email/${loginData.email}`)
       .then(response => response.json())
       .then(data => {
         if (data.data) {
@@ -48,7 +48,7 @@ export default function LoginSignup() {
       phone: signupData.phone ? Number(signupData.phone) : undefined 
     };
   
-    fetch('http://localhost:3001/users', {
+    fetch('https://travel-planner-440113.uc.r.appspot.com/users', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

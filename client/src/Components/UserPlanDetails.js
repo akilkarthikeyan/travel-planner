@@ -12,9 +12,9 @@ const SegmentDetailModal = ({ segment, onClose }) => {
       try {
         let url;
         if (segment.segment_type === 'airbnb') {
-          url = `http://localhost:3001/airbnbs/${segment.segment_id}`;
+          url = `https://travel-planner-440113.uc.r.appspot.com/airbnbs/${segment.segment_id}`;
         } else if (segment.segment_type === 'flight') {
-          url = `http://localhost:3001/flights/${segment.segment_id}`;
+          url = `https://travel-planner-440113.uc.r.appspot.com/flights/${segment.segment_id}`;
         }
 
         const response = await fetch(url);
@@ -105,7 +105,7 @@ export default function UserPlanDetails() {
   const navigate = useNavigate();
 
   const fetchPlanDetails = () => {
-    fetch(`http://localhost:3001/plans/${id}`)
+    fetch(`https://travel-planner-440113.uc.r.appspot.com/plans/${id}`)
       .then((response) => response.json())
       .then((data) => {
         if (data.message === 'Plan Details fetched successfully') {
@@ -126,7 +126,7 @@ export default function UserPlanDetails() {
     event.stopPropagation();
     
     try {
-      const response = await fetch(`http://localhost:3001/plans/${id}/segment/${segment.segment_id}`, {
+      const response = await fetch(`https://travel-planner-440113.uc.r.appspot.com/plans/${id}/segment/${segment.segment_id}`, {
         method: 'DELETE',
       });
       

@@ -25,7 +25,7 @@ export default function AddSegmentPage() {
     try {
       
       console.log(filters.search_start_date + " " + filters.search_end_date)
-      const response = await fetch(`http://localhost:3001/plans/${id}/segment`, {
+      const response = await fetch(`https://travel-planner-440113.uc.r.appspot.com/plans/${id}/segment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,8 +60,8 @@ export default function AddSegmentPage() {
       console.log(filters);
       const url =
         tab === "airbnb"
-          ? "http://localhost:3001/airbnbs"
-          : "http://localhost:3001/flights";
+          ? "https://travel-planner-440113.uc.r.appspot.com/airbnbs"
+          : "https://travel-planner-440113.uc.r.appspot.com/flights";
       const response = await fetch(url, {
         method: "POST",
         headers: {
