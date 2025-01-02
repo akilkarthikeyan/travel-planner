@@ -8,7 +8,7 @@ Features:
 * Database indexing for relevant tables
 * Triggers
 * Transactions
-* Stores Procedures
+* Stored Procedures
 * TypeScript, Node.js and Express.js backend
 * React.js and Tailwind CSS frontend
 * GCP db + backend hosting
